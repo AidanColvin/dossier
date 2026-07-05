@@ -1,0 +1,6 @@
+# runtime dependencies
+#
+# the pipeline runs on the python standard library only:
+#   urllib, json, sqlite3, csv, argparse, dataclasses, pathlib, re
+#
+# there are no third-party runtime dependencies.
