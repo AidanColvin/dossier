@@ -1,0 +1,31 @@
+{
+  "results": [
+    {
+      "id": "https://openalex.org/W2000000001",
+      "doi": "https://doi.org/10.1234/gpu.2024",
+      "title": "Accelerating deep learning on GPUs",
+      "publication_year": 2024,
+      "publication_date": "2024-03-11",
+      "primary_location": {"source": {"display_name": "Nature Machine Intelligence"}},
+      "open_access": {"oa_url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1"}
+    },
+    {
+      "id": "https://openalex.org/W2000000002",
+      "doi": "",
+      "title": "Sparse attention kernels",
+      "publication_year": 2023,
+      "publication_date": "2023-09-02",
+      "primary_location": {"source": {"display_name": "NeurIPS"}},
+      "open_access": {"oa_url": ""}
+    },
+    {
+      "id": "https://openalex.org/W2000000003",
+      "doi": "https://doi.org/10.1234/empty",
+      "title": "",
+      "publication_year": 2022,
+      "publication_date": "2022-01-01",
+      "primary_location": {},
+      "open_access": {}
+    }
+  ]
+}

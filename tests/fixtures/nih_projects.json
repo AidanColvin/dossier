@@ -1,0 +1,28 @@
+{
+  "results": [
+    {
+      "appl_id": "10500001",
+      "project_num": "5R01AA000001-02",
+      "project_title": "Neuroscience imaging platform",
+      "fiscal_year": 2023,
+      "project_start_date": "2023-01-01",
+      "organization": {"org_name": "UNIVERSITY OF EXAMPLE"}
+    },
+    {
+      "appl_id": "10500002",
+      "project_num": "1R21CA000002-01",
+      "project_title": "Cancer biomarker discovery",
+      "fiscal_year": 2022,
+      "project_start_date": "2022-04-01",
+      "organization": {"org_name": "EXAMPLE RESEARCH INSTITUTE"}
+    },
+    {
+      "appl_id": "",
+      "project_num": "",
+      "project_title": "Malformed row",
+      "fiscal_year": 2021,
+      "project_start_date": "",
+      "organization": {}
+    }
+  ]
+}

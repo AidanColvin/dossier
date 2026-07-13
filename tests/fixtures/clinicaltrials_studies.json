@@ -1,0 +1,22 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {"nctId": "NCT05000001", "briefTitle": "Device Safety Study"},
+        "statusModule": {"overallStatus": "RECRUITING", "startDateStruct": {"date": "2023-06-01"}}
+      }
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {"nctId": "NCT05000002", "briefTitle": "Follow-up Trial"},
+        "statusModule": {"overallStatus": "COMPLETED", "startDateStruct": {"date": "2022-02-15"}}
+      }
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {"briefTitle": "No id study"},
+        "statusModule": {"overallStatus": "UNKNOWN"}
+      }
+    }
+  ]
+}
