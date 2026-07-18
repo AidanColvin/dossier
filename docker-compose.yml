@@ -1,0 +1,22 @@
+# run the whole stack locally:
+#   docker compose up --build
+# then open http://localhost:3000
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    # NEXT_PUBLIC_API_URL is baked at build time; the default
+    # (http://localhost:8000) is correct when running compose on your machine,
+    # because the browser — not the container — makes the api call.
+    depends_on:
+      - api

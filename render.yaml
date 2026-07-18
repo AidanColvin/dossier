@@ -1,0 +1,9 @@
+# deploy the backend api on render (https://render.com).
+services:
+  - type: web
+    name: msetl-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
