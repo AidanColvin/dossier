@@ -20,7 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
     return the argument parser for the command-line interface
     """
     parser = argparse.ArgumentParser(
-        prog="msetl",
+        prog="dossier",
         description="extract public research and company data from several "
                     "keyless sources into json, csv, and sqlite.",
     )

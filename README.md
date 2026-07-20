@@ -1,8 +1,9 @@
-# multi-source-etl-pipeline
+# Dossier
 
-A full-stack application that extracts public research and company data from
-four **free, keyless, primary** sources, normalizes every row to a single
-record shape, validates its provenance, and presents it in a live dashboard.
+Compiles a sourced intelligence profile of any company or organization from
+four **free, keyless, primary** public APIs. It extracts data from every
+source concurrently, normalizes each row to a single record shape, validates
+its provenance, and presents it in a live dashboard.
 
 - **Backend** — a modular ETL pipeline (pure Python standard library) plus a
   FastAPI service. 148 tests, ~98% coverage, CI on Python 3.10–3.12.
@@ -78,7 +79,7 @@ the backend.
 The pipeline is also a standalone CLI, independent of the API and frontend:
 
 ```bash
-msetl --entity "NVIDIA" --ticker NVDA --out ./out
+dossier --entity "NVIDIA" --ticker NVDA --out ./out
 # writes nvidia.json, nvidia.csv, nvidia.sqlite
 ```
 

@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "multi-source-etl-pipeline"
+name = "dossier"
 version = "0.1.0"
-description = "A modular, keyless multi-source ETL pipeline for public research and company data."
+description = "Compiles a sourced intelligence profile of any company or organization from four keyless public APIs."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
@@ -19,10 +19,10 @@ dev = ["pytest>=7.4", "pytest-cov>=4.1", "httpx>=0.27",
        "fastapi>=0.110", "uvicorn[standard]>=0.29"]
 
 [project.scripts]
-msetl = "etl_pipeline.cli:main"
+dossier = "etl_pipeline.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/aidancolvin/multi-source-etl-pipeline"
+Homepage = "https://github.com/aidancolvin/dossier"
 
 [tool.setuptools.packages.find]
 where = ["src"]
