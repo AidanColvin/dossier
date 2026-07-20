@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Multi-Source ETL Pipeline",
+  title: "Dossier — Multi-Source Intelligence Pipeline",
   description:
-    "Extract public research and company data from four keyless primary sources.",
+    "Compiles a sourced intelligence profile of any company or organization from four keyless public APIs.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

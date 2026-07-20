@@ -51,11 +51,13 @@ export default function Home() {
     <main className="page">
       <header className="hero">
         <h1>
-          Multi-Source <span>ETL Pipeline</span>
+          <span>Dossier</span>
         </h1>
+        <p className="hero__tag">Multi-source intelligence pipeline</p>
         <p>
-          Extract public research and company data from four keyless primary
-          sources, normalize it, validate provenance, and explore it here.
+          Compiles a sourced intelligence profile of any company or organization
+          from four keyless public APIs — extracting, normalizing, and
+          provenance-checking every record.
         </p>
         <div className="hero__badges">
           <span>SEC EDGAR</span>
