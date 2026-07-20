@@ -1,0 +1,52 @@
+{
+  "nvidia": {
+    "sources": [
+      {"source": "sec_edgar", "ok": true, "error": "", "count": 3},
+      {"source": "openalex", "ok": true, "error": "", "count": 2},
+      {"source": "clinicaltrials", "ok": true, "error": "", "count": 1},
+      {"source": "nih_reporter", "ok": true, "error": "", "count": 2}
+    ],
+    "records": [
+      {"source": "sec_edgar", "record_type": "filing", "native_id": "0001045810-24-000029",
+       "title": "10-K filed 2024-02-21 — Annual report", "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000029/nvda-20240128.htm",
+       "date": "2024-02-21", "entity": "NVIDIA",
+       "sources": ["https://www.sec.gov/Archives/edgar/data/1045810/000104581024000029/nvda-20240128.htm", "https://www.sec.gov"],
+       "verified": true, "extra": {"form": "10-K", "report_date": "2024-01-28", "source_count": 2}},
+      {"source": "openalex", "record_type": "paper", "native_id": "https://openalex.org/W4392011001",
+       "title": "Scaling laws for transformer inference on accelerator hardware", "url": "https://doi.org/10.1145/3620665.3640366",
+       "date": "2024-04-27", "entity": "NVIDIA",
+       "sources": ["https://doi.org/10.1145/3620665.3640366"],
+       "verified": true, "extra": {"journal": "ASPLOS", "doi": "https://doi.org/10.1145/3620665.3640366", "source_count": 1}},
+      {"source": "sec_edgar", "record_type": "filing", "native_id": "0001045810-24-000015",
+       "title": "8-K filed 2024-02-21 — Current report", "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000015/d8k.htm",
+       "date": "2024-02-21", "entity": "NVIDIA",
+       "sources": ["https://www.sec.gov/Archives/edgar/data/1045810/000104581024000015/d8k.htm", "https://www.sec.gov"],
+       "verified": true, "extra": {"form": "8-K", "report_date": "", "source_count": 2}},
+      {"source": "nih_reporter", "record_type": "grant", "native_id": "5R01EB000001-03",
+       "title": "GPU-accelerated reconstruction for real-time medical imaging", "url": "https://reporter.nih.gov/project-details/10700123",
+       "date": "2024-01-15", "entity": "NVIDIA",
+       "sources": ["https://reporter.nih.gov/project-details/10700123"],
+       "verified": true, "extra": {"organization": "STANFORD UNIVERSITY", "fiscal_year": "2024", "source_count": 1}},
+      {"source": "openalex", "record_type": "paper", "native_id": "https://openalex.org/W4385500002",
+       "title": "Sparse attention kernels for long-context language models", "url": "https://doi.org/10.48550/arXiv.2307.08691",
+       "date": "2023-11-02", "entity": "NVIDIA",
+       "sources": ["https://doi.org/10.48550/arXiv.2307.08691"],
+       "verified": true, "extra": {"journal": "NeurIPS", "doi": "https://doi.org/10.48550/arXiv.2307.08691", "source_count": 1}},
+      {"source": "clinicaltrials", "record_type": "trial", "native_id": "NCT05500123",
+       "title": "AI-Assisted Diagnostic Imaging Using Accelerated Compute", "url": "https://clinicaltrials.gov/study/NCT05500123",
+       "date": "2023-06-01", "entity": "NVIDIA",
+       "sources": ["https://clinicaltrials.gov/study/NCT05500123"],
+       "verified": true, "extra": {"status": "RECRUITING", "source_count": 1}},
+      {"source": "sec_edgar", "record_type": "filing", "native_id": "0001045810-24-000010",
+       "title": "4 filed 2024-01-05 — Statement of changes in beneficial ownership", "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000010/form4.xml",
+       "date": "2024-01-05", "entity": "NVIDIA",
+       "sources": ["https://www.sec.gov/Archives/edgar/data/1045810/000104581024000010/form4.xml", "https://www.sec.gov"],
+       "verified": true, "extra": {"form": "4", "report_date": "", "source_count": 2}},
+      {"source": "nih_reporter", "record_type": "grant", "native_id": "1R21CA000045-01",
+       "title": "Deep learning biomarkers for early cancer detection", "url": "https://reporter.nih.gov/project-details/10655098",
+       "date": "2022-09-01", "entity": "NVIDIA",
+       "sources": ["https://reporter.nih.gov/project-details/10655098"],
+       "verified": true, "extra": {"organization": "UNIVERSITY OF EXAMPLE", "fiscal_year": "2022", "source_count": 1}}
+    ]
+  }
+}

@@ -1,9 +1,12 @@
-// thin client for the pipeline api. the base url comes from the environment
-// so the same build works locally and when deployed.
+// thin client for the pipeline api.
+//
+// by default the base url is empty, so calls hit this app's own /demo and /run
+// route handlers (same origin) — that is what makes a standalone deployment
+// work with no separate backend. set NEXT_PUBLIC_API_URL to point directly at
+// the python fastapi service instead.
 import type { RunRequest, RunResponse } from "./types";
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export async function fetchDemo(entity: string): Promise<RunResponse> {
   const url = `${API_BASE}/demo?entity=${encodeURIComponent(entity)}`;
