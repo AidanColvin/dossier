@@ -62,6 +62,14 @@ class RunResult:
     records: list[Record] = field(default_factory=list)
     results: list[SourceResult] = field(default_factory=list)
     outputs: dict[str, str] = field(default_factory=dict)
+    # identity of the company the run actually searched for. `resolved` is
+    # False when the query matched nothing in sec edgar, in which case `entity`
+    # is the raw text the caller typed and cik/ticker are empty.
+    resolved: bool = False
+    cik: str = ""
+    ticker: str = ""
+    query: str = ""
+    official: str = ""
 
 
 def record_to_dict(record: Record) -> dict[str, Any]:

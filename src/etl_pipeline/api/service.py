@@ -53,6 +53,11 @@ def to_response(result: RunResult) -> RunResponse:
     return RunResponse(
         entity=result.entity,
         count=len(result.records),
+        resolved=result.resolved,
+        cik=result.cik,
+        ticker=result.ticker,
+        query=result.query,
+        official=result.official,
         records=[r.__dict__ for r in result.records],
         sources=[{"source": s.source, "ok": s.ok, "error": s.error,
                   "count": len(s.records)} for s in result.results],

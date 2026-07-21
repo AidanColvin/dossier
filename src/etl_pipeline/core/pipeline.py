@@ -12,6 +12,7 @@ from etl_pipeline.core.transform import transform
 from etl_pipeline.http_client import Fetcher, build_fetcher
 from etl_pipeline.models import Query, RunResult
 from etl_pipeline.registry import resolve_sources
+from etl_pipeline.resolve import apply_entity, resolve_entity
 
 
 def collect(query: Query, sources: Optional[list[str]] = None,
@@ -20,17 +21,26 @@ def collect(query: Query, sources: Optional[list[str]] = None,
     """
     given a query and options
     run extract and transform only, returning records without writing files
+
+    the entity is resolved against sec edgar first, so every connector searches
+    one canonical company name instead of whatever string was typed. this is
+    what stops a search for "apple" returning orchard research.
     """
     config = config or load_config()
     connectors = resolve_sources(sources)
     fetch_json = http or build_fetcher(config)
 
+    entity = resolve_entity(query, fetch_json, config)
+    resolved_query = apply_entity(query, entity)
+
     extract = extract_concurrent if concurrent else extract_sequential
-    results = extract(connectors, query, fetch_json, config)
+    results = extract(connectors, resolved_query, fetch_json, config)
     records = transform(results, config)
 
-    return RunResult(entity=query.entity, records=records,
-                     results=results, outputs={})
+    return RunResult(entity=entity.name, records=records,
+                     results=results, outputs={}, resolved=entity.resolved,
+                     cik=entity.cik, ticker=entity.ticker, query=entity.query,
+                     official=entity.official)
 
 
 def run(query: Query, sources: Optional[list[str]] = None, out_dir: str = "out",

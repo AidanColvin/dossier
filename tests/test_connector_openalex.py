@@ -51,3 +51,55 @@ def test_fetch_reports_failure():
 
     result = openalex.fetch(Query(entity="NVIDIA"), boom, Config())
     assert result.ok is False
+
+
+def _institutions(*entries):
+    return {"results": list(entries)}
+
+
+def test_find_institution_prefers_a_company_over_a_university():
+    """'Apple' is the company, not a same-named school."""
+    def http(method, url, **kwargs):
+        return _institutions(
+            {"id": "https://openalex.org/I1", "display_name": "Apple University",
+             "type": "education", "works_count": 900},
+            {"id": "https://openalex.org/I2", "display_name": "Apple (United States)",
+             "type": "company", "works_count": 8000},
+        )
+
+    assert openalex.find_institution("Apple", http) == "https://openalex.org/I2"
+
+
+def test_find_institution_picks_the_most_published_subsidiary():
+    """the parent company outranks its national arms."""
+    def http(method, url, **kwargs):
+        return _institutions(
+            {"id": "https://openalex.org/I1", "display_name": "Apple (Israel)",
+             "type": "company", "works_count": 40},
+            {"id": "https://openalex.org/I2", "display_name": "Apple (United States)",
+             "type": "company", "works_count": 8000},
+        )
+
+    assert openalex.find_institution("Apple", http) == "https://openalex.org/I2"
+
+
+def test_find_institution_rejects_an_unrelated_match():
+    """a private lab must not inherit a university's entire output."""
+    def http(method, url, **kwargs):
+        return _institutions(
+            {"id": "https://openalex.org/I9", "display_name": "Duke University",
+             "type": "education", "works_count": 500000},
+        )
+
+    assert openalex.find_institution("Some Private Lab", http) == ""
+
+
+def test_build_params_uses_authorship_lookup_when_resolved():
+    params = openalex.build_params("Apple", 5, "https://openalex.org/I2")
+    assert params["filter"] == (
+        "authorships.institutions.lineage:https://openalex.org/I2")
+
+
+def test_build_params_falls_back_to_affiliation_search():
+    params = openalex.build_params("Some Private Lab", 5, "")
+    assert params["filter"] == "raw_affiliation_strings.search:Some Private Lab"

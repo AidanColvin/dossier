@@ -43,5 +43,12 @@ class RunResponse(BaseModel):
 
     entity: str
     count: int
+    # the identity the run resolved to. `resolved` is false when the query
+    # matched no SEC registrant, in which case entity is the raw typed text.
+    resolved: bool = False
+    cik: str = ""
+    ticker: str = ""
+    query: str = ""
+    official: str = ""
     records: list[RecordModel]
     sources: list[SourceStatus]
