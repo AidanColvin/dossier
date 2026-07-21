@@ -1,0 +1,6 @@
+# Dependencies for the deployed serverless function only.
+#
+# This sits next to the entrypoint because the project's pyproject.toml
+# declares dependencies = [] on purpose — the pipeline itself is stdlib-only,
+# and FastAPI is needed just by the HTTP service in src/etl_pipeline/api.
+fastapi>=0.110

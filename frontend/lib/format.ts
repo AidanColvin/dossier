@@ -26,8 +26,18 @@ export function sourceLabel(source: string): string {
   return SOURCE_LABELS[source] ?? source;
 }
 
+/**
+ * given a date string from any connector
+ * return a plain YYYY-MM-DD day, or an em dash when absent
+ *
+ * upstream APIs are inconsistent: NIH RePORTER returns full ISO timestamps
+ * ("1997-07-01T00:00:00") while the others return bare dates. Everything the
+ * UI shows is day-resolution, so the time part is dropped rather than leaked
+ * into stat tiles and table cells.
+ */
 export function formatDate(date: string): string {
-  return date ? date : "—";
+  if (!date) return "—";
+  return date.slice(0, 10);
 }
 
 export function recordChips(record: PipelineRecord): string[] {

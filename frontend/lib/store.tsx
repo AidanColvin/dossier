@@ -25,6 +25,8 @@ interface RunStore {
   run: RunResult | null;
   loading: boolean;
   error: string | null;
+  /** whether the sessionStorage restore has completed. */
+  hydrated: boolean;
   /** entity names held for side-by-side comparison. */
   compare: RunResult[];
   /** run the live pipeline (falls back to demo data server-side when no backend). */
@@ -68,6 +70,11 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const [compare, setCompare] = useState<RunResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Rehydration happens in an effect, one tick after mount. Until it has run,
+  // `run` is null for a reason that is NOT "no dossier loaded" — so the
+  // ensure-run fallback must wait, or a full page load would overwrite the
+  // restored dossier with the default entity.
+  const [hydrated, setHydrated] = useState(false);
 
   // Guards a race: if the user fires a second run while the first is still in
   // flight, only the newest response is allowed to land.
@@ -78,6 +85,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setRun(readSession<RunResult | null>(STORAGE_KEY, null));
     setCompare(readSession<RunResult[]>(COMPARE_KEY, []));
+    setHydrated(true);
   }, []);
 
   const settle = useCallback((result: RunResult, id: number) => {
@@ -92,11 +100,8 @@ export function RunProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchDemo(entity);
-        settle(
-          { response, mode: "demo", ranAt: Date.now(), request: { entity } },
-          id
-        );
+        const { response, mode } = await fetchDemo(entity);
+        settle({ response, mode, ranAt: Date.now(), request: { entity } }, id);
       } catch (caught) {
         if (id === requestId.current) setError((caught as Error).message);
       } finally {
@@ -159,6 +164,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
       run,
       loading,
       error,
+      hydrated,
       compare,
       execute,
       loadDemo,
@@ -170,6 +176,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
       run,
       loading,
       error,
+      hydrated,
       compare,
       execute,
       loadDemo,
@@ -201,14 +208,17 @@ export function useRun(): RunStore {
  */
 export function useEnsureRun(fallbackEntity = "NVIDIA"): RunStore {
   const store = useRun();
-  const { run, loading, loadDemo } = store;
+  const { run, loading, hydrated, loadDemo } = store;
   const requested = useRef(false);
 
   useEffect(() => {
-    if (run || loading || requested.current) return;
+    // Wait for rehydration: before it completes a null `run` only means
+    // "not restored yet", and loading the fallback would clobber the dossier
+    // the visitor already had on a full page load.
+    if (!hydrated || run || loading || requested.current) return;
     requested.current = true;
     void loadDemo(fallbackEntity);
-  }, [run, loading, loadDemo, fallbackEntity]);
+  }, [hydrated, run, loading, loadDemo, fallbackEntity]);
 
   return store;
 }

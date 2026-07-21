@@ -28,10 +28,16 @@ export function countBy(
     .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
 }
 
+/** Longest run of years the timeline will draw before trimming to the recent
+ *  end. Real dossiers reach back to the 1990s, and thirty mostly-empty rows
+ *  bury the years that actually carry records. */
+const MAX_YEARS = 15;
+
 /**
  * given a list of records
  * return one bucket per calendar year in ascending order, with the empty
- * years in between filled in so the timeline has no phantom gaps
+ * years in between filled in so the timeline has no phantom gaps, trimmed to
+ * the most recent MAX_YEARS when the span is longer than that
  */
 export function byYear(records: PipelineRecord[]): Bucket[] {
   const years = countBy(records, (record) => record.date.slice(0, 4));
@@ -42,8 +48,8 @@ export function byYear(records: PipelineRecord[]): Bucket[] {
   if (numeric.length === 0) return [];
 
   const lookup = new Map(years.map((bucket) => [bucket.key, bucket.count]));
-  const first = Math.min(...numeric);
   const last = Math.max(...numeric);
+  const first = Math.max(Math.min(...numeric), last - MAX_YEARS + 1);
   const filled: Bucket[] = [];
   for (let year = first; year <= last; year += 1) {
     const key = String(year);

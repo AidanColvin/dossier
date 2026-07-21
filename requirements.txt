@@ -1,6 +1,8 @@
 # runtime dependencies
 #
-# the pipeline runs on the python standard library only:
+# the pipeline itself runs on the python standard library only:
 #   urllib, json, sqlite3, csv, argparse, dataclasses, pathlib, re
 #
-# there are no third-party runtime dependencies.
+# fastapi is needed only by the HTTP service (src/etl_pipeline/api), which is
+# what the deployed serverless function in api/index.py exposes.
+fastapi>=0.110

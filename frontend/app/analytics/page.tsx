@@ -6,7 +6,7 @@
 
 import { useMemo } from "react";
 import { byYear, countBy, provenanceCount, summarize } from "@/lib/analytics";
-import { sourceLabel, typeLabel } from "@/lib/format";
+import { formatDate, sourceLabel, typeLabel } from "@/lib/format";
 import { sourceColor } from "@/lib/sources";
 import { useEnsureRun } from "@/lib/store";
 import { BarChart, Empty, ModeNotice, PageHead, Stat } from "@/components/ui";
@@ -93,7 +93,9 @@ export default function AnalyticsPage() {
                   : "—"
               }
               hint={
-                stats.oldest ? `${stats.oldest} → ${stats.newest}` : "no dated records"
+                stats.oldest
+                  ? `${formatDate(stats.oldest)} → ${formatDate(stats.newest)}`
+                  : "no dated records"
               }
             />
             <Stat

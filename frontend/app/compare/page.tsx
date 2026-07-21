@@ -31,10 +31,10 @@ export default function ComparePage() {
     setAdding(true);
     setError(null);
     try {
-      const response = await fetchDemo(name);
+      const { response, mode } = await fetchDemo(name);
       addToCompare({
         response,
-        mode: "demo",
+        mode,
         ranAt: Date.now(),
         request: { entity: name },
       });

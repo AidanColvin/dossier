@@ -13,13 +13,18 @@ import type { RunMode, RunRequest, RunResponse } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-export async function fetchDemo(entity: string): Promise<RunResponse> {
+export async function fetchDemo(
+  entity: string
+): Promise<{ response: RunResponse; mode: RunMode }> {
   const url = `${API_BASE}/demo?entity=${encodeURIComponent(entity)}`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`demo request failed (${response.status})`);
   }
-  return response.json();
+  // On a backend-connected deployment /demo returns a real pipeline run, so
+  // trust the header rather than assuming this is always sample data.
+  const mode = response.headers.get("x-dossier-mode") === "live" ? "live" : "demo";
+  return { response: await response.json(), mode };
 }
 
 export async function runPipeline(
