@@ -9,7 +9,7 @@ import { byYear, countBy, provenanceCount, summarize } from "@/lib/analytics";
 import { formatDate, sourceLabel, typeLabel } from "@/lib/format";
 import { sourceColor } from "@/lib/sources";
 import { useEnsureRun } from "@/lib/store";
-import { BarChart, Empty, ModeNotice, PageHead, Stat } from "@/components/ui";
+import { BarChart, Empty, PageHead, Stat } from "@/components/ui";
 
 export default function AnalyticsPage() {
   const { run } = useEnsureRun();
@@ -70,7 +70,6 @@ export default function AnalyticsPage() {
       </PageHead>
 
       <div className="stack">
-        <ModeNotice run={run} />
 
         <section>
           <div className="grid grid--4">

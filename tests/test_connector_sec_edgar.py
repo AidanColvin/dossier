@@ -54,8 +54,16 @@ def test_parse_filings_respects_limit():
     assert len(sec_edgar.parse_filings(submissions, "NVIDIA", limit=1)) == 1
 
 
-def test_fetch_without_ticker_is_empty_ok(fake_http):
+def test_fetch_without_ticker_resolves_by_name(fake_http):
+    """no ticker is no longer a dead end: the entity name resolves the cik."""
     result = sec_edgar.fetch(Query(entity="NVIDIA"), fake_http, Config())
+    assert result.ok is True
+    assert len(result.records) > 0
+
+
+def test_fetch_without_ticker_or_entity_is_empty_ok(fake_http):
+    """with nothing to resolve from, the source is skipped rather than failed."""
+    result = sec_edgar.fetch(Query(entity=""), fake_http, Config())
     assert result.ok is True
     assert result.records == []
 
@@ -80,3 +88,53 @@ def test_fetch_reports_http_failure(query):
     result = sec_edgar.fetch(query, boom, Config())
     assert result.ok is False
     assert "network down" in result.error
+
+
+def test_normalize_company_strips_legal_suffixes():
+    """company titles and typed names compare equal once normalized."""
+    assert sec_edgar.normalize_company("Apple Inc.") == "apple"
+    assert sec_edgar.normalize_company("NVIDIA CORP") == "nvidia"
+    assert sec_edgar.normalize_company("The Coca-Cola Company") == "coca cola"
+
+
+def test_find_cik_for_name_prefers_exact_title_match():
+    """'Apple' resolves to Apple Inc., not to Apple Hospitality REIT."""
+    tickers = {
+        "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."},
+        "1": {"cik_str": 1750, "ticker": "APLE", "title": "Apple Hospitality REIT, Inc."},
+    }
+    assert sec_edgar.find_cik_for_name(tickers, "Apple") == "0000320193"
+
+
+def test_find_cik_for_name_returns_blank_when_no_match():
+    """an unknown company yields no cik rather than a wrong one."""
+    tickers = {"0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}}
+    assert sec_edgar.find_cik_for_name(tickers, "Moderna") == ""
+
+
+def test_fetch_resolves_by_entity_name_without_a_ticker():
+    """a search with no ticker still returns filings, matched by name."""
+    calls = []
+
+    def fake_http(method, url, **kwargs):
+        calls.append(url)
+        if url == sec_edgar.TICKERS_URL:
+            return {"0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc."}}
+        return {
+            "cik": 320193,
+            "name": "Apple Inc.",
+            "filings": {"recent": {
+                "accessionNumber": ["0000320193-24-000001"],
+                "form": ["10-K"],
+                "filingDate": ["2024-11-01"],
+                "reportDate": ["2024-09-28"],
+                "primaryDocument": ["aapl.htm"],
+                "primaryDocDescription": ["Annual report"],
+            }},
+        }
+
+    query = Query(entity="Apple", ticker="")
+    result = sec_edgar.fetch(query, fake_http, Config())
+    assert result.ok
+    assert len(result.records) == 1
+    assert result.records[0].record_type == "filing"

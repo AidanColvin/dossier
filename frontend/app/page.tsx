@@ -1,181 +1,196 @@
 "use client";
 
-// Home — the landing dashboard. States what Dossier does, shows the headline
-// numbers for whatever dossier is currently loaded, and routes into the
-// deeper views.
+// Home — the product. One headline, one search field, then results.
+//
+// Deliberately not a dashboard: no coverage charts, no stat tiles, no status
+// banners. A visitor arrives wanting records for a company, so the only thing
+// above the fold is the field that gets them there. Depth lives on the other
+// routes for people who go looking for it.
 
-import Link from "next/link";
-import { countBy, summarize } from "@/lib/analytics";
-import { sourceLabel } from "@/lib/format";
-import { SOURCES, sourceColor } from "@/lib/sources";
+import { useCallback, useMemo, useState } from "react";
+import { formatDate, sourceLabel, typeLabel } from "@/lib/format";
 import { useEnsureRun } from "@/lib/store";
-import {
-  BarChart,
-  LoadingRows,
-  ModeNotice,
-  PageHead,
-  RecordRow,
-  SourceChip,
-  Stat,
-} from "@/components/ui";
+import type { PipelineRecord } from "@/lib/types";
 
-const DESTINATIONS = [
-  {
-    href: "/search",
-    title: "Search",
-    blurb: "Compile a dossier on any company or organization.",
-  },
-  {
-    href: "/records",
-    title: "Records",
-    blurb: "Filter, sort and search every normalized record.",
-  },
-  {
-    href: "/sources",
-    title: "Sources",
-    blurb: "Per-connector health, coverage and provenance.",
-  },
-  {
-    href: "/analytics",
-    title: "Analytics",
-    blurb: "Distribution by source, type and year.",
-  },
-  {
-    href: "/compare",
-    title: "Compare",
-    blurb: "Put several entities side by side.",
-  },
-  {
-    href: "/exports",
-    title: "Exports",
-    blurb: "Download the dossier as CSV, JSON or Markdown.",
-  },
+const SUGGESTIONS = ["Apple", "NVIDIA", "Pfizer", "Moderna", "Tesla"];
+
+// The result-type tabs, in the order they read most naturally. "all" is
+// synthesised; the rest map onto record_type values.
+const TABS: { key: string; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "filing", label: "Filings" },
+  { key: "paper", label: "Research" },
+  { key: "trial", label: "Trials" },
+  { key: "grant", label: "Grants" },
 ];
 
 export default function HomePage() {
-  const { run, loading } = useEnsureRun();
-  const response = run?.response ?? null;
-  const stats = summarize(response);
-  const bySource = countBy(response?.records ?? [], (record) => record.source);
+  const { run, loading, error, execute } = useEnsureRun();
+  const [query, setQuery] = useState("");
+  const [tab, setTab] = useState("all");
+
+  const records = useMemo(() => run?.response.records ?? [], [run]);
+
+  const submit = useCallback(
+    (event: React.FormEvent) => {
+      event.preventDefault();
+      const entity = query.trim();
+      if (!entity) return;
+      setTab("all");
+      void execute({ entity, max_results: 10 });
+    },
+    [query, execute]
+  );
+
+  const pick = useCallback(
+    (entity: string) => {
+      setQuery(entity);
+      setTab("all");
+      void execute({ entity, max_results: 10 });
+    },
+    [execute]
+  );
+
+  // Only offer a tab when it actually holds something — an empty "Trials" tab
+  // is a dead end the visitor has to discover by clicking.
+  const counts = useMemo(() => {
+    const totals: Record<string, number> = { all: records.length };
+    for (const record of records) {
+      totals[record.record_type] = (totals[record.record_type] ?? 0) + 1;
+    }
+    return totals;
+  }, [records]);
+
+  const visible = useMemo(
+    () =>
+      [...(tab === "all"
+        ? records
+        : records.filter((record) => record.record_type === tab))].sort((a, b) =>
+        b.date.localeCompare(a.date)
+      ),
+    [records, tab]
+  );
 
   return (
     <main className="page">
-      <PageHead title="Dossier">
-        Compiles a sourced intelligence profile of any company or organization
-        from four keyless public APIs — extracting, normalizing, deduplicating
-        and provenance-checking every record.
-      </PageHead>
+      <section className="hero">
+        <h1>Every public record, in one place.</h1>
+        <p>Search a company. See its filings, research, trials, and grants.</p>
 
-      <div className="row" style={{ marginBottom: 28 }}>
-        {SOURCES.map((source) => (
-          <SourceChip key={source.key} source={source.key} />
-        ))}
-      </div>
-
-      <div className="stack">
-        <ModeNotice run={run} />
-
-        <section>
-          <h2 className="section-title">
-            {response ? `Current dossier — ${response.entity}` : "Current dossier"}
-          </h2>
-          <div className="grid grid--4">
-            <Stat
-              label="Records"
-              value={stats.total}
-              hint={`${stats.types} record types`}
+        <form onSubmit={submit}>
+          <div className="search-bar">
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search a company or organization"
+              aria-label="Search a company or organization"
+              autoComplete="organization"
+              autoFocus
             />
-            <Stat
-              label="Verified"
-              value={`${stats.verifiedPct}%`}
-              tone={stats.verifiedPct >= 80 ? "pos" : "warn"}
-              hint={`${stats.verified} of ${stats.total} multi-sourced`}
-            />
-            <Stat
-              label="Sources up"
-              value={`${stats.sourcesOk}/${stats.sourcesTotal}`}
-              tone={stats.failed.length ? "warn" : "pos"}
-              hint={
-                stats.failed.length
-                  ? `${stats.failed.map((s) => sourceLabel(s.source)).join(", ")} failed`
-                  : "all connectors responded"
-              }
-            />
-            <Stat
-              label="Provenance links"
-              value={stats.provenanceLinks}
-              hint={
-                stats.oldest && stats.newest
-                  ? `${stats.oldest.slice(0, 4)}–${stats.newest.slice(0, 4)}`
-                  : "no dated records"
-              }
-            />
+            <button
+              type="submit"
+              className="btn btn--primary"
+              disabled={loading || !query.trim()}
+            >
+              {loading ? "Searching…" : "Search"}
+            </button>
           </div>
-        </section>
+        </form>
 
-        <section>
-          <h2 className="section-title">Coverage by source</h2>
-          <div className="card">
-            {loading && !response ? (
-              <LoadingRows rows={4} />
-            ) : (
-              <BarChart
-                buckets={bySource}
-                label={sourceLabel}
-                color={sourceColor}
-                emptyText="Run a search to populate coverage."
-              />
-            )}
-          </div>
-        </section>
+        <div className="suggestions">
+          {SUGGESTIONS.map((name) => (
+            <button key={name} type="button" onClick={() => pick(name)}>
+              {name}
+            </button>
+          ))}
+        </div>
+      </section>
 
-        <section>
-          <h2 className="section-title">Latest records</h2>
-          {loading && !response ? (
-            <LoadingRows />
-          ) : (
-            <div className="card card--flush">
-              {[...(response?.records ?? [])]
-                .sort((a, b) => b.date.localeCompare(a.date))
-                .slice(0, 5)
-                .map((record) => (
-                  <RecordRow key={`${record.source}:${record.native_id}`} record={record} />
-                ))}
+      {error && (
+        <p className="notice notice--error" style={{ marginTop: 32 }}>
+          {error}
+        </p>
+      )}
+
+      {loading && (
+        <p className="count-line" aria-live="polite">
+          Running the pipeline across four sources…
+        </p>
+      )}
+
+      {!loading && run && (
+        <>
+          <p className="count-line">
+            <strong style={{ color: "var(--ink)" }}>{records.length}</strong>{" "}
+            {records.length === 1 ? "record" : "records"} for{" "}
+            <strong style={{ color: "var(--ink)" }}>{run.response.entity}</strong>
+          </p>
+
+          {records.length > 0 && (
+            <div className="tabs">
+              {TABS.filter((item) => counts[item.key]).map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  data-active={tab === item.key}
+                  onClick={() => setTab(item.key)}
+                >
+                  {item.label} {counts[item.key]}
+                </button>
+              ))}
             </div>
           )}
-          {response && response.records.length > 5 && (
-            <p style={{ marginTop: 12, fontSize: 13.5 }}>
-              <Link href="/records">
-                View all {response.count} records →
-              </Link>
-            </p>
-          )}
-        </section>
 
-        <section>
-          <h2 className="section-title">Explore</h2>
-          <div className="grid grid--3">
-            {DESTINATIONS.map((destination) => (
-              <Link
-                key={destination.href}
-                href={destination.href}
-                className="card card--link"
-              >
-                <div style={{ fontWeight: 600, marginBottom: 5 }}>
-                  {destination.title}
-                </div>
-                <div style={{ color: "var(--muted)", fontSize: 13.5 }}>
-                  {destination.blurb}
-                </div>
-              </Link>
-            ))}
+          <div style={{ maxWidth: 860, margin: "0 auto" }}>
+            {visible.length === 0 ? (
+              <p className="empty">
+                No records found for {run.response.entity}. Try the full company
+                name, or another organization.
+              </p>
+            ) : (
+              visible.map((record) => (
+                <Result
+                  key={`${record.source}:${record.native_id}`}
+                  record={record}
+                />
+              ))
+            )}
           </div>
-        </section>
-      </div>
-
-      <footer className="footer">
-        Modular ETL pipeline · FastAPI backend · Next.js frontend
-      </footer>
+        </>
+      )}
     </main>
+  );
+}
+
+// takes: one normalized record
+// does: renders it as a title plus a single quiet provenance line — the two
+//       things a reader needs to judge and open it. Everything else about the
+//       record is available on the Records route.
+// returns: the result row
+function Result({ record }: { record: PipelineRecord }) {
+  const venue =
+    typeof record.extra?.journal === "string"
+      ? record.extra.journal
+      : typeof record.extra?.organization === "string"
+        ? record.extra.organization
+        : "";
+
+  return (
+    <div className="result">
+      <span className="result__date">{formatDate(record.date)}</span>
+      <div className="result__title">
+        {record.url ? (
+          <a href={record.url} target="_blank" rel="noopener noreferrer">
+            {record.title}
+          </a>
+        ) : (
+          record.title
+        )}
+      </div>
+      <div className="result__meta">
+        {sourceLabel(record.source)}
+        {venue ? ` · ${venue}` : ` · ${typeLabel(record.record_type)}`}
+      </div>
+    </div>
   );
 }

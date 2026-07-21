@@ -8,7 +8,7 @@ import { useMemo, useState } from "react";
 import { summarize } from "@/lib/analytics";
 import { buildExport, download, type ExportFormat } from "@/lib/exports";
 import { useEnsureRun } from "@/lib/store";
-import { Empty, ModeNotice, PageHead, Stat } from "@/components/ui";
+import { Empty, PageHead, Stat } from "@/components/ui";
 
 const FORMATS: { key: ExportFormat; label: string; blurb: string }[] = [
   {
@@ -70,7 +70,6 @@ export default function ExportsPage() {
       </PageHead>
 
       <div className="stack">
-        <ModeNotice run={run} />
 
         <section>
           <div className="grid grid--3">

@@ -1,323 +1,226 @@
 "use client";
 
-// Compare — several dossiers side by side. Entities are added from the Search
-// page (or loaded here directly) and held in the shared store, so the tray
-// survives navigating away and back.
+// Compare — how two or three organizations differ in what they actually
+// produce: filings, research, trials, grants.
+//
+// Deliberately narrow. Earlier this page led with verification rate, sources
+// responding, provenance URL counts and date ranges — pipeline diagnostics,
+// not answers. Nobody comparing Pfizer to Moderna wants to know how many URLs
+// backed a record. What they want is the shape of each organization's output,
+// so that is the only thing here.
 
-import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { fetchDemo } from "@/lib/api";
-import { countBy, summarize } from "@/lib/analytics";
-import { sourceLabel, typeLabel } from "@/lib/format";
-import { SOURCES, sourceColor } from "@/lib/sources";
+import { typeLabel } from "@/lib/format";
 import { useRun } from "@/lib/store";
-import { Empty, PageHead } from "@/components/ui";
+import type { RunResult } from "@/lib/types";
+
+// The four categories every dossier is made of, in a fixed order so the
+// columns line up between organizations even when one has none of a kind.
+const CATEGORIES = ["filing", "paper", "trial", "grant"] as const;
 
 export default function ComparePage() {
-  const { compare, addToCompare, removeFromCompare, clearCompare } = useRun();
+  const { compare, addToCompare, removeFromCompare } = useRun();
   const [entity, setEntity] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // takes: nothing (reads the entity input)
-  // does: fetches that entity's dossier and drops it straight into the tray.
-  //       deliberately bypasses the shared store's `run`, so adding a
-  //       comparison does not replace whatever dossier is active on the other
-  //       pages.
-  async function addEntity(event: React.FormEvent) {
-    event.preventDefault();
-    const name = entity.trim();
-    if (!name) return;
-    setAdding(true);
-    setError(null);
-    try {
-      const { response, mode } = await fetchDemo(name);
-      addToCompare({
-        response,
-        mode,
-        ranAt: Date.now(),
-        request: { entity: name },
-      });
-      setEntity("");
-    } catch (caught) {
-      setError((caught as Error).message);
-    } finally {
-      setAdding(false);
-    }
-  }
+  const add = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault();
+      const name = entity.trim();
+      if (!name) return;
+      setBusy(true);
+      setError(null);
+      try {
+        const { response, mode } = await fetchDemo(name);
+        addToCompare({
+          response,
+          mode,
+          ranAt: Date.now(),
+          request: { entity: name },
+        });
+        setEntity("");
+      } catch (caught) {
+        setError((caught as Error).message);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [entity, addToCompare]
+  );
 
-  // Every record type present across all compared entities, so the rows line
-  // up even when one entity has no trials and another does.
-  const allTypes = [
-    ...new Set(
-      compare.flatMap((item) =>
-        item.response.records.map((record) => record.record_type)
+  // One shared scale across every column, so a taller bar always means more
+  // records — comparing per-column maxima would make a company with 3 trials
+  // look equal to one with 30.
+  const peak = Math.max(
+    1,
+    ...compare.flatMap((item) =>
+      CATEGORIES.map(
+        (category) =>
+          item.response.records.filter((r) => r.record_type === category).length
       )
-    ),
-  ].sort();
+    )
+  );
 
   return (
-    <main className="page page--wide">
-      <PageHead
-        title="Compare"
-        actions={
-          compare.length > 0 ? (
-            <button type="button" className="btn btn--sm" onClick={clearCompare}>
-              Clear all
-            </button>
-          ) : undefined
-        }
-      >
-        Put up to four dossiers side by side — coverage, verification rate and
-        per-source contribution, on the same axes.
-      </PageHead>
+    <main className="page">
+      <div className="page-head" style={{ textAlign: "center" }}>
+        <h1>Compare</h1>
+        <p style={{ margin: "0 auto" }}>
+          What each organization actually produces, side by side.
+        </p>
+      </div>
 
-      <form className="card" onSubmit={addEntity} style={{ marginBottom: 28 }}>
-        <div className="row">
+      <form
+        onSubmit={add}
+        style={{ maxWidth: 520, margin: "0 auto 44px" }}
+      >
+        <div className="search-bar">
           <input
-            className="input"
-            style={{ flex: 1, minWidth: 220 }}
             value={entity}
             onChange={(event) => setEntity(event.target.value)}
-            placeholder="Add an entity — Moderna, Pfizer, Alphabet…"
-            aria-label="Entity to add to the comparison"
+            placeholder="Add an organization"
+            aria-label="Add an organization to compare"
           />
           <button
             type="submit"
             className="btn btn--primary"
-            disabled={adding || !entity.trim()}
+            disabled={busy || !entity.trim()}
           >
-            {adding ? "Loading…" : "Add"}
+            {busy ? "Adding…" : "Add"}
           </button>
         </div>
         {error && (
-          <p className="notice notice--error" style={{ marginTop: 12 }}>
+          <p className="notice notice--error" style={{ marginTop: 14 }}>
             {error}
           </p>
         )}
-        <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "var(--faint)" }}>
-          You can also add the active dossier from the{" "}
-          <Link href="/search">Search</Link> page.
-        </p>
       </form>
 
       {compare.length === 0 ? (
-        <Empty>
-          Nothing to compare yet. Add an entity above, or run a search and use
-          &ldquo;Add to compare&rdquo;.
-        </Empty>
+        <p className="empty">
+          Add two or more organizations to see how their output compares.
+        </p>
       ) : (
-        <div className="stack">
-          <section>
-            <h2 className="section-title">Side by side</h2>
-            <div className="table-wrap">
-              <table className="data">
-                <thead>
-                  <tr>
-                    <th>Metric</th>
-                    {compare.map((item) => (
-                      <th key={item.response.entity}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                          }}
-                        >
-                          <span>{item.response.entity}</span>
-                          <button
-                            type="button"
-                            className="btn btn--sm"
-                            style={{ padding: "1px 8px", fontSize: 11 }}
-                            onClick={() => removeFromCompare(item.response.entity)}
-                            aria-label={`Remove ${item.response.entity}`}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  <Row
-                    label="Records"
-                    cells={compare.map((item) => String(item.response.count))}
-                  />
-                  <Row
-                    label="Verified"
-                    cells={compare.map(
-                      (item) => `${summarize(item.response).verifiedPct}%`
-                    )}
-                  />
-                  <Row
-                    label="Sources responding"
-                    cells={compare.map((item) => {
-                      const stats = summarize(item.response);
-                      return `${stats.sourcesOk}/${stats.sourcesTotal}`;
-                    })}
-                  />
-                  <Row
-                    label="Date range"
-                    cells={compare.map((item) => {
-                      const stats = summarize(item.response);
-                      return stats.oldest
-                        ? `${stats.oldest.slice(0, 4)}–${stats.newest.slice(0, 4)}`
-                        : "—";
-                    })}
-                  />
-                  <Row
-                    label="Provenance URLs"
-                    cells={compare.map((item) =>
-                      String(summarize(item.response).provenanceLinks)
-                    )}
-                  />
-
-                  <tr>
-                    <td
-                      colSpan={compare.length + 1}
-                      style={{
-                        background: "var(--panel-2)",
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        letterSpacing: "0.05em",
-                        textTransform: "uppercase",
-                        color: "var(--faint)",
-                      }}
-                    >
-                      By source
-                    </td>
-                  </tr>
-                  {SOURCES.map((source) => (
-                    <tr key={source.key}>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <span
-                          className="chip__dot"
-                          style={{
-                            background: sourceColor(source.key),
-                            display: "inline-block",
-                            marginRight: 7,
-                          }}
-                        />
-                        {source.label}
-                      </td>
-                      {compare.map((item) => {
-                        const n = item.response.records.filter(
-                          (record) => record.source === source.key
-                        ).length;
-                        return (
-                          <td
-                            key={item.response.entity}
-                            style={{
-                              fontVariantNumeric: "tabular-nums",
-                              color: n ? "var(--ink)" : "var(--ghost)",
-                            }}
-                          >
-                            {n || "—"}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-
-                  <tr>
-                    <td
-                      colSpan={compare.length + 1}
-                      style={{
-                        background: "var(--panel-2)",
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        letterSpacing: "0.05em",
-                        textTransform: "uppercase",
-                        color: "var(--faint)",
-                      }}
-                    >
-                      By type
-                    </td>
-                  </tr>
-                  {allTypes.map((type) => (
-                    <tr key={type}>
-                      <td style={{ whiteSpace: "nowrap" }}>{typeLabel(type)}</td>
-                      {compare.map((item) => {
-                        const n = item.response.records.filter(
-                          (record) => record.record_type === type
-                        ).length;
-                        return (
-                          <td
-                            key={item.response.entity}
-                            style={{
-                              fontVariantNumeric: "tabular-nums",
-                              color: n ? "var(--ink)" : "var(--ghost)",
-                            }}
-                          >
-                            {n || "—"}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="section-title">Coverage profile</h2>
-            <div className="grid grid--2">
-              {compare.map((item) => {
-                const buckets = countBy(
-                  item.response.records,
-                  (record) => record.source
-                );
-                const max = Math.max(1, ...buckets.map((b) => b.count));
-                return (
-                  <div className="card" key={item.response.entity}>
-                    <div className="section-title">{item.response.entity}</div>
-                    <div className="bars">
-                      {buckets.map((bucket) => (
-                        <div className="bar-row" key={bucket.key}>
-                          <div className="bar-row__label">
-                            {sourceLabel(bucket.key)}
-                          </div>
-                          <div className="bar-row__track">
-                            <div
-                              className="bar-row__fill"
-                              style={{
-                                width: `${(bucket.count / max) * 100}%`,
-                                background: sourceColor(bucket.key),
-                              }}
-                            />
-                          </div>
-                          <div className="bar-row__value">{bucket.count}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: `repeat(auto-fit, minmax(260px, 1fr))`,
+            maxWidth: 900,
+            margin: "0 auto",
+            alignItems: "start",
+          }}
+        >
+          {compare.map((item) => (
+            <Column
+              key={item.response.entity}
+              item={item}
+              peak={peak}
+              onRemove={() => removeFromCompare(item.response.entity)}
+            />
+          ))}
         </div>
       )}
     </main>
   );
 }
 
-// takes: a row label and one cell per compared entity
-// does: renders a metric row, dimming the label column like a header
-// returns: the table row
-function Row({ label, cells }: { label: string; cells: string[] }) {
+// takes: one compared dossier, the shared bar scale, and a remove handler
+// does: renders the organization's name, total, and one bar per category
+// returns: a single comparison column
+function Column({
+  item,
+  peak,
+  onRemove,
+}: {
+  item: RunResult;
+  peak: number;
+  onRemove: () => void;
+}) {
+  const { entity, records } = {
+    entity: item.response.entity,
+    records: item.response.records,
+  };
+
   return (
-    <tr>
-      <td style={{ whiteSpace: "nowrap", color: "var(--muted)" }}>{label}</td>
-      {cells.map((cell, index) => (
-        <td
-          key={index}
-          style={{ fontVariantNumeric: "tabular-nums", fontWeight: 550 }}
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 8,
+          marginBottom: 4,
+        }}
+      >
+        <h2
+          style={{
+            margin: 0,
+            fontSize: 19,
+            fontWeight: 600,
+            letterSpacing: "-0.02em",
+          }}
         >
-          {cell}
-        </td>
-      ))}
-    </tr>
+          {entity}
+        </h2>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove ${entity}`}
+          style={{
+            border: "none",
+            background: "none",
+            color: "var(--ghost)",
+            cursor: "pointer",
+            fontSize: 15,
+            lineHeight: 1,
+            padding: 2,
+          }}
+        >
+          ✕
+        </button>
+      </div>
+
+      <div
+        style={{ fontSize: 13.5, color: "var(--muted)", marginBottom: 20 }}
+      >
+        {records.length} total records
+      </div>
+
+      <div className="bars">
+        {CATEGORIES.map((category) => {
+          const count = records.filter(
+            (record) => record.record_type === category
+          ).length;
+          return (
+            <div key={category}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13.5,
+                  marginBottom: 6,
+                  color: count ? "var(--ink)" : "var(--ghost)",
+                }}
+              >
+                <span>{typeLabel(category)}</span>
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {count}
+                </span>
+              </div>
+              <div className="bar-row__track">
+                <div
+                  className="bar-row__fill"
+                  style={{
+                    width: `${(count / peak) * 100}%`,
+                    background: "var(--ink)",
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

@@ -42,13 +42,67 @@ def find_cik_for_ticker(tickers: dict, ticker: str) -> str:
     return ""
 
 
-def resolve_cik(ticker: str, http: Fetcher, config: Config) -> str:
+# legal-form suffixes that appear in sec company titles but never in the way
+# a person types a company name ("Apple" vs "Apple Inc.")
+_SUFFIXES = (
+    "incorporated", "inc", "corporation", "corp", "company", "co",
+    "limited", "ltd", "plc", "lp", "llc", "holdings", "holding", "group",
+    "the", "sa", "nv", "ag",
+)
+
+
+def normalize_company(name: str) -> str:
     """
-    given a ticker
+    given a company name from either the user or the sec tickers file
+    return a comparable form: lowercased, punctuation dropped, and trailing
+    legal-form suffixes removed, so 'Apple' matches 'Apple Inc.'
+    """
+    cleaned = "".join(ch if ch.isalnum() or ch.isspace() else " " for ch in name.lower())
+    words = [w for w in cleaned.split() if w]
+    while words and words[-1] in _SUFFIXES:
+        words.pop()
+    while words and words[0] in _SUFFIXES:
+        words.pop(0)
+    return " ".join(words)
+
+
+def find_cik_for_name(tickers: dict, name: str) -> str:
+    """
+    given the company_tickers payload and a company name
+    return the padded cik of the best title match, or '' when none match
+
+    prefers an exact normalized match; falls back to a title that starts with
+    the requested name, which catches 'Alphabet' -> 'Alphabet Inc.' without
+    matching every company that merely contains the word
+    """
+    wanted = normalize_company(name)
+    if not wanted:
+        return ""
+    prefix = ""
+    for entry in (tickers or {}).values():
+        title = normalize_company(as_text(entry.get("title")))
+        if title == wanted:
+            return pad_cik(entry.get("cik_str"))
+        if not prefix and title.startswith(f"{wanted} "):
+            prefix = pad_cik(entry.get("cik_str"))
+    return prefix
+
+
+def resolve_cik(ticker: str, http: Fetcher, config: Config, entity: str = "") -> str:
+    """
+    given a ticker and optionally the entity name
     return the company's padded cik by reading the public tickers file
+
+    the ticker is authoritative when supplied; otherwise the entity name is
+    matched against the company titles, so a search for a company nobody
+    remembers the ticker for still returns its filings
     """
     tickers = http("GET", TICKERS_URL)
-    return find_cik_for_ticker(tickers, ticker)
+    if ticker.strip():
+        by_ticker = find_cik_for_ticker(tickers, ticker)
+        if by_ticker:
+            return by_ticker
+    return find_cik_for_name(tickers, entity)
 
 
 def submissions_url(cik: str) -> str:
@@ -145,12 +199,13 @@ def parse_filings(submissions: dict, entity: str, limit: int) -> list[Record]:
 def fetch(query: Query, http: Fetcher, config: Config) -> SourceResult:
     """
     given a query, a fetcher, and a config
-    return the sec filing records for the query's ticker
+    return the sec filing records for the query's ticker, or for its entity
+    name when no ticker was supplied
     """
-    if not query.ticker.strip():
+    if not query.ticker.strip() and not query.entity.strip():
         return empty_result(NAME)
     try:
-        cik = resolve_cik(query.ticker, http, config)
+        cik = resolve_cik(query.ticker, http, config, query.entity)
         if not cik:
             return empty_result(NAME)
         submissions = fetch_submissions(cik, http, config)

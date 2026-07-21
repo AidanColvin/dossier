@@ -10,15 +10,16 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useRun } from "@/lib/store";
 
+// Search is not a tab: the home page *is* search. Every remaining route is
+// somewhere a visitor goes deliberately, after they already have results.
 export const NAV: { href: string; label: string }[] = [
-  { href: "/", label: "Home" },
-  { href: "/search", label: "Search" },
+  { href: "/", label: "Search" },
   { href: "/records", label: "Records" },
-  { href: "/sources", label: "Sources" },
-  { href: "/analytics", label: "Analytics" },
+  { href: "/analytics", label: "Insights" },
   { href: "/compare", label: "Compare" },
-  { href: "/exports", label: "Exports" },
-  { href: "/pipeline", label: "Pipeline" },
+  { href: "/exports", label: "Export" },
+  { href: "/sources", label: "Sources" },
+  { href: "/pipeline", label: "How it works" },
 ];
 
 // The five satellite nodes of the brand glyph, at 72° intervals on a radius of
@@ -85,17 +86,10 @@ function EntityPill() {
   }
   if (!run) return null;
 
-  const live = run.mode === "live";
+  // Names the dossier the other routes are showing, so "Records" and
+  // "Insights" are never ambiguous about which company they describe.
   return (
-    <Link
-      href="/search"
-      className="shell-entity"
-      title={live ? "Live pipeline run" : "Bundled demo data"}
-    >
-      <span
-        className="shell-entity__dot"
-        style={{ background: live ? "var(--pos)" : "var(--warn)" }}
-      />
+    <Link href="/" className="shell-entity" title="Back to search">
       <span className="shell-entity__name">{run.response.entity}</span>
       <span style={{ color: "var(--faint)", fontVariantNumeric: "tabular-nums" }}>
         {run.response.count}

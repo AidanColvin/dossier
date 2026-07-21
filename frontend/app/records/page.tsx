@@ -13,7 +13,6 @@ import type { PipelineRecord } from "@/lib/types";
 import {
   Empty,
   LoadingRows,
-  ModeNotice,
   PageHead,
   RecordRow,
   SourceChip,
@@ -114,7 +113,6 @@ export default function RecordsPage() {
       </PageHead>
 
       <div className="stack">
-        <ModeNotice run={run} />
 
         <div className="card">
           <div className="field" style={{ marginBottom: 16 }}>

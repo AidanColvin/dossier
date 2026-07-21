@@ -9,7 +9,7 @@ import { sourceLabel, typeLabel } from "@/lib/format";
 import { SOURCES, sourceColor, sourceMeta } from "@/lib/sources";
 import { useEnsureRun } from "@/lib/store";
 import type { SourceStatus } from "@/lib/types";
-import { BarChart, ModeNotice, PageHead, Stat } from "@/components/ui";
+import { BarChart, PageHead, Stat } from "@/components/ui";
 
 export default function SourcesPage() {
   const { run } = useEnsureRun();
@@ -32,7 +32,6 @@ export default function SourcesPage() {
       </PageHead>
 
       <div className="stack">
-        <ModeNotice run={run} />
 
         <section>
           <div className="grid grid--3">

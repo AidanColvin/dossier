@@ -4,13 +4,12 @@
 // tiles, bar charts, record rows and the demo/live banner. keeping them here
 // means the Records table and the Compare table can never drift apart.
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Bucket } from "@/lib/analytics";
 import { provenanceCount } from "@/lib/analytics";
 import { formatDate, recordChips, sourceLabel, typeLabel } from "@/lib/format";
 import { sourceColor } from "@/lib/sources";
-import type { PipelineRecord, RunResult } from "@/lib/types";
+import type { PipelineRecord } from "@/lib/types";
 
 export function PageHead({
   title,
@@ -192,32 +191,6 @@ export function RecordRow({ record }: { record: PipelineRecord }) {
         </div>
       </div>
     </div>
-  );
-}
-
-/**
- * given the active run
- * render the banner explaining whether the numbers on screen came from the
- * live pipeline or the bundled sample — shown on every data view so a demo
- * result is never mistaken for a real one
- */
-export function ModeNotice({ run }: { run: RunResult | null }) {
-  if (!run) return null;
-  if (run.mode === "live") {
-    return (
-      <p className="notice notice--info">
-        Live pipeline run for <strong>{run.response.entity}</strong> — every
-        record was fetched from its upstream API and provenance-checked.
-      </p>
-    );
-  }
-  return (
-    <p className="notice notice--warn">
-      Showing <strong>bundled sample data</strong> for {run.response.entity}.
-      These records are illustrative, not a live API result. Connect the
-      pipeline backend (see <Link href="/pipeline">Pipeline</Link>) to run
-      against the real sources.
-    </p>
   );
 }
 

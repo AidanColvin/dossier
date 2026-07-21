@@ -41,9 +41,10 @@ def test_run_sequential_matches_concurrent(query, fake_http, tmp_path):
     assert len(a.records) == len(b.records)
 
 
-def test_run_missing_ticker_skips_sec(fake_http, tmp_path):
+def test_run_without_ticker_still_includes_sec_filings(fake_http, tmp_path):
+    """a search by name alone still reaches EDGAR, so filings are not lost."""
     result = run(Query(entity="NVIDIA"), out_dir=str(tmp_path), http=fake_http)
-    assert "filing" not in {r.record_type for r in result.records}
+    assert "filing" in {r.record_type for r in result.records}
 
 
 def test_collect_returns_records_without_writing(query, fake_http):
