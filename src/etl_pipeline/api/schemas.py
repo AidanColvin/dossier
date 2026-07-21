@@ -38,6 +38,32 @@ class SourceStatus(BaseModel):
     count: int
 
 
+class FilingModel(BaseModel):
+    """one recent sec filing shown in a profile."""
+
+    form: str
+    filed: str
+    accession: str
+    url: str
+
+
+class ProfileModel(BaseModel):
+    """the company fact banner and financial history."""
+
+    name: str = ""
+    cik: str = ""
+    ticker: str = ""
+    exchange: str = ""
+    industry: str = ""
+    city: str = ""
+    state: str = ""
+    website: str = ""
+    fiscal_year_end: str = ""
+    financials: dict[str, dict[str, float]] = Field(default_factory=dict)
+    filings: list[FilingModel] = Field(default_factory=list)
+    ok: bool = False
+
+
 class RunResponse(BaseModel):
     """the payload returned by /run and /demo."""
 
@@ -50,5 +76,6 @@ class RunResponse(BaseModel):
     ticker: str = ""
     query: str = ""
     official: str = ""
+    profile: Optional[ProfileModel] = None
     records: list[RecordModel]
     sources: list[SourceStatus]

@@ -4,6 +4,7 @@ keeps request/response translation out of the route handlers so both are easy
 to test in isolation.
 """
 import json
+from dataclasses import asdict
 from pathlib import Path
 
 from etl_pipeline.api.schemas import RunRequest, RunResponse
@@ -58,6 +59,7 @@ def to_response(result: RunResult) -> RunResponse:
         ticker=result.ticker,
         query=result.query,
         official=result.official,
+        profile=asdict(result.profile) if result.profile else None,
         records=[r.__dict__ for r in result.records],
         sources=[{"source": s.source, "ok": s.ok, "error": s.error,
                   "count": len(s.records)} for s in result.results],

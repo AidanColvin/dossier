@@ -1,21 +1,23 @@
 "use client";
 
-// Home — the product. One headline, one search field, then results.
+// Home — search, and the company profile it produces.
 //
-// Deliberately not a dashboard: no coverage charts, no stat tiles, no status
-// banners. A visitor arrives wanting records for a company, so the only thing
-// above the fold is the field that gets them there. Depth lives on the other
-// routes for people who go looking for it.
+// Before a search it explains what the app does and shows a sample of the
+// output, so a first-time visitor understands the product without running
+// anything. After a search the whole page becomes the profile.
 
 import { useCallback, useMemo, useState } from "react";
-import { formatDate, sourceLabel, typeLabel } from "@/lib/format";
+import { BarChart, LineChart, money } from "@/components/Charts";
+import {
+  FactBanner,
+  Filings,
+  Financials,
+  ResearchList,
+} from "@/components/Profile";
 import { useEnsureRun } from "@/lib/store";
-import type { PipelineRecord } from "@/lib/types";
 
 const SUGGESTIONS = ["Apple", "NVIDIA", "Pfizer", "Moderna", "Tesla"];
 
-// The result-type tabs, in the order they read most naturally. "all" is
-// synthesised; the rest map onto record_type values.
 const TABS: { key: string; label: string }[] = [
   { key: "all", label: "All" },
   { key: "filing", label: "Filings" },
@@ -30,29 +32,17 @@ export default function HomePage() {
   const [tab, setTab] = useState("all");
 
   const records = useMemo(() => run?.response.records ?? [], [run]);
+  const profile = run?.response.profile ?? null;
 
-  const submit = useCallback(
-    (event: React.FormEvent) => {
-      event.preventDefault();
-      const entity = query.trim();
-      if (!entity) return;
-      setTab("all");
-      void execute({ entity, max_results: 10 });
-    },
-    [query, execute]
-  );
-
-  const pick = useCallback(
+  const search = useCallback(
     (entity: string) => {
-      setQuery(entity);
+      if (!entity.trim()) return;
       setTab("all");
-      void execute({ entity, max_results: 10 });
+      void execute({ entity: entity.trim(), max_results: 10 });
     },
     [execute]
   );
 
-  // Only offer a tab when it actually holds something — an empty "Trials" tab
-  // is a dead end the visitor has to discover by clicking.
   const counts = useMemo(() => {
     const totals: Record<string, number> = { all: records.length };
     for (const record of records) {
@@ -65,132 +55,241 @@ export default function HomePage() {
     () =>
       [...(tab === "all"
         ? records
-        : records.filter((record) => record.record_type === tab))].sort((a, b) =>
+        : records.filter((r) => r.record_type === tab))].sort((a, b) =>
         b.date.localeCompare(a.date)
       ),
     [records, tab]
   );
 
   return (
-    <main className="page">
-      <section className="hero">
-        <h1>Every public record, in one place.</h1>
-        <p>Search a company. See its filings, research, trials, and grants.</p>
-
-        <form onSubmit={submit}>
-          <div className="search-bar">
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search a company or organization"
-              aria-label="Search a company or organization"
-              autoComplete="organization"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="btn btn--primary"
-              disabled={loading || !query.trim()}
-            >
-              {loading ? "Searching…" : "Search"}
-            </button>
-          </div>
-        </form>
-
-        <div className="suggestions">
-          {SUGGESTIONS.map((name) => (
-            <button key={name} type="button" onClick={() => pick(name)}>
-              {name}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {error && (
-        <p className="notice notice--error" style={{ marginTop: 32 }}>
-          {error}
-        </p>
-      )}
-
-      {loading && (
-        <p className="count-line" aria-live="polite">
-          Running the pipeline across four sources…
-        </p>
-      )}
-
-      {!loading && run && (
-        <>
-          <p className="count-line">
-            <strong style={{ color: "var(--ink)" }}>{records.length}</strong>{" "}
-            {records.length === 1 ? "record" : "records"} for{" "}
-            <strong style={{ color: "var(--ink)" }}>{run.response.entity}</strong>
+    <main className="page page--wide">
+      <div className="canvas">
+        <div className="hero">
+          <h1>Every public record, in one place.</h1>
+          <p>
+            Search a company. Get its filings, financials, research, trials and
+            grants — assembled from primary sources.
           </p>
 
-          {records.length > 0 && (
-            <div className="tabs">
-              {TABS.filter((item) => counts[item.key]).map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  data-active={tab === item.key}
-                  onClick={() => setTab(item.key)}
-                >
-                  {item.label} {counts[item.key]}
-                </button>
-              ))}
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              search(query);
+            }}
+          >
+            <div className="search-bar">
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search any public company or ticker"
+                aria-label="Search any public company or ticker"
+                autoComplete="organization"
+              />
+              <button
+                type="submit"
+                className="btn btn--primary"
+                disabled={loading || !query.trim()}
+              >
+                {loading ? "Working…" : "Search"}
+              </button>
             </div>
-          )}
+          </form>
 
-          <div style={{ maxWidth: 860, margin: "0 auto" }}>
-            {visible.length === 0 ? (
-              <p className="empty">
-                No records found for {run.response.entity}. Try the full company
-                name, or another organization.
-              </p>
+          <div className="suggestions">
+            {SUGGESTIONS.map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => {
+                  setQuery(name);
+                  search(name);
+                }}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {error && (
+          <p className="notice notice--error" style={{ marginTop: 34 }}>
+            {error}
+          </p>
+        )}
+
+        {loading && (
+          <p className="count-line" aria-live="polite">
+            Reading SEC filings, research, trials and grants…
+          </p>
+        )}
+
+        {!loading && run && (
+          <div style={{ marginTop: 56 }}>
+            {profile?.ok ? (
+              <FactBanner profile={profile} />
             ) : (
-              visible.map((record) => (
-                <Result
-                  key={`${record.source}:${record.native_id}`}
-                  record={record}
-                />
-              ))
+              <div className="fact-banner">
+                <span className="fact-banner__name">{run.response.entity}</span>
+                <span>
+                  No SEC registrant matched — showing research records only.
+                </span>
+              </div>
+            )}
+
+            {profile?.ok && <Financials profile={profile} />}
+            {profile?.ok && <Filings profile={profile} />}
+
+            {records.length > 0 && (
+              <section style={{ marginTop: 40 }}>
+                <div className="row" style={{ marginBottom: 16 }}>
+                  <h3 className="section-title" style={{ margin: 0 }}>
+                    Research, trials and grants
+                  </h3>
+                  <span className="spacer" />
+                  <div className="tabs" style={{ margin: 0 }}>
+                    {TABS.filter((t) => counts[t.key]).map((t) => (
+                      <button
+                        key={t.key}
+                        type="button"
+                        data-active={tab === t.key}
+                        onClick={() => setTab(t.key)}
+                      >
+                        {t.label} {counts[t.key]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <ResearchList records={visible} />
+              </section>
             )}
           </div>
-        </>
-      )}
+        )}
+
+        {!run && !loading && <Explainer />}
+      </div>
     </main>
   );
 }
 
-// takes: one normalized record
-// does: renders it as a title plus a single quiet provenance line — the two
-//       things a reader needs to judge and open it. Everything else about the
-//       record is available on the Records route.
-// returns: the result row
-function Result({ record }: { record: PipelineRecord }) {
-  const venue =
-    typeof record.extra?.journal === "string"
-      ? record.extra.journal
-      : typeof record.extra?.organization === "string"
-        ? record.extra.organization
-        : "";
+// takes: nothing
+// does: renders the pre-search explanation — what the app produces, a sample
+//       of the real output shape, and what each source contributes
+// returns: the explainer section
+function Explainer() {
+  // Illustrative figures for the sample card only. Labelled as a sample, and
+  // never mixed with a real run: this block disappears the moment one lands.
+  const sample = [
+    { x: "2021", y: 260_174_000_000 },
+    { x: "2022", y: 274_515_000_000 },
+    { x: "2023", y: 365_817_000_000 },
+    { x: "2024", y: 394_328_000_000 },
+    { x: "2025", y: 383_285_000_000 },
+  ];
 
   return (
-    <div className="result">
-      <span className="result__date">{formatDate(record.date)}</span>
-      <div className="result__title">
-        {record.url ? (
-          <a href={record.url} target="_blank" rel="noopener noreferrer">
-            {record.title}
-          </a>
-        ) : (
-          record.title
-        )}
+    <>
+      <div className="section-band">
+        <div className="split">
+          <div>
+            <div className="canvas__eyebrow">The problem</div>
+            <h2>Company research is scattered across four agencies.</h2>
+            <p>
+              Filings live at the SEC. Papers live in OpenAlex. Trials live at
+              ClinicalTrials.gov. Grants live at NIH RePORTER. Answering one
+              question about one company means four searches, four formats, and
+              no way to line them up.
+            </p>
+            <p style={{ marginBottom: 0 }}>
+              Dossier resolves the company once, then queries all four as that
+              company — and returns one normalized, deduplicated, sourced record
+              set with the financials attached.
+            </p>
+          </div>
+
+          <div className="sample">
+            <div className="sample__label">Sample output</div>
+            <div className="sample__card">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 9,
+                  marginBottom: 16,
+                }}
+              >
+                <strong style={{ fontSize: 19, letterSpacing: "-0.02em" }}>
+                  Apple
+                </strong>
+                <span className="fact-banner__ticker">AAPL</span>
+                <span style={{ fontSize: 12.5, color: "var(--faint)" }}>
+                  Nasdaq
+                </span>
+              </div>
+
+              <div
+                className="metrics"
+                style={{ gridTemplateColumns: "1fr 1fr", marginBottom: 18 }}
+              >
+                <div className="metric">
+                  <div className="metric__label">Revenue</div>
+                  <div className="metric__value" style={{ fontSize: 21 }}>
+                    {money(383_285_000_000)}
+                  </div>
+                </div>
+                <div className="metric">
+                  <div className="metric__label">R&amp;D</div>
+                  <div className="metric__value" style={{ fontSize: 21 }}>
+                    {money(29_900_000_000)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="sample__label" style={{ marginBottom: 8 }}>
+                Revenue · 5 years
+              </div>
+              <LineChart
+                series={[
+                  { label: "Revenue", color: "var(--accent)", points: sample },
+                ]}
+                height={110}
+              />
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="result__meta">
-        {sourceLabel(record.source)}
-        {venue ? ` · ${venue}` : ` · ${typeLabel(record.record_type)}`}
+
+      <div className="section-band">
+        <div className="canvas__eyebrow" style={{ marginBottom: 26 }}>
+          What every search returns
+        </div>
+        <div className="features">
+          <Feature
+            title="Filings"
+            body="Every recent SEC filing with its form type, date and a direct link into EDGAR's archive."
+          />
+          <Feature
+            title="Financials"
+            body="Five years of revenue, net income and R&D, read from the company's own XBRL filings."
+          />
+          <Feature
+            title="Research"
+            body="Papers authored at the company, matched by institution rather than keyword."
+          />
+          <Feature
+            title="Trials and grants"
+            body="Clinical studies it sponsors and the federally funded work that names it."
+          />
+        </div>
       </div>
+    </>
+  );
+}
+
+function Feature({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="feature">
+      <h3>{title}</h3>
+      <p>{body}</p>
     </div>
   );
 }

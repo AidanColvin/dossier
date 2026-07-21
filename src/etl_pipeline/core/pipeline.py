@@ -12,6 +12,7 @@ from etl_pipeline.core.transform import transform
 from etl_pipeline.http_client import Fetcher, build_fetcher
 from etl_pipeline.models import Query, RunResult
 from etl_pipeline.registry import resolve_sources
+from etl_pipeline.profile import CompanyProfile, fetch_profile
 from etl_pipeline.resolve import apply_entity, resolve_entity
 
 
@@ -33,6 +34,11 @@ def collect(query: Query, sources: Optional[list[str]] = None,
     entity = resolve_entity(query, fetch_json, config)
     resolved_query = apply_entity(query, entity)
 
+    # A resolved company gets its SEC fact banner and financial history. This
+    # is what turns a list of records into a company profile, and it is skipped
+    # entirely for anything that did not resolve.
+    profile = fetch_profile(entity.cik, fetch_json, config) if entity.cik else None
+
     extract = extract_concurrent if concurrent else extract_sequential
     results = extract(connectors, resolved_query, fetch_json, config)
     records = transform(results, config)
@@ -40,7 +46,7 @@ def collect(query: Query, sources: Optional[list[str]] = None,
     return RunResult(entity=entity.name, records=records,
                      results=results, outputs={}, resolved=entity.resolved,
                      cik=entity.cik, ticker=entity.ticker, query=entity.query,
-                     official=entity.official)
+                     official=entity.official, profile=profile)
 
 
 def run(query: Query, sources: Optional[list[str]] = None, out_dir: str = "out",

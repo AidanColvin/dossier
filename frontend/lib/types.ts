@@ -20,11 +20,47 @@ export interface SourceStatus {
   count: number;
 }
 
+/** one recent SEC filing shown on a company profile. */
+export interface Filing {
+  form: string;
+  filed: string;
+  accession: string;
+  url: string;
+}
+
+/**
+ * the fact banner and financial history for a resolved company.
+ * `financials` is metric -> { fiscal year: value }, e.g.
+ * { revenue: { "2024": 391035000000 } }. absent for anything that did not
+ * resolve to an SEC registrant.
+ */
+export interface CompanyProfile {
+  name: string;
+  cik: string;
+  ticker: string;
+  exchange: string;
+  industry: string;
+  city: string;
+  state: string;
+  website: string;
+  fiscal_year_end: string;
+  financials: Record<string, Record<string, number>>;
+  filings: Filing[];
+  ok: boolean;
+}
+
 export interface RunResponse {
   entity: string;
   count: number;
   records: PipelineRecord[];
   sources: SourceStatus[];
+  /** what the query resolved to; false when no SEC registrant matched. */
+  resolved?: boolean;
+  cik?: string;
+  ticker?: string;
+  query?: string;
+  official?: string;
+  profile?: CompanyProfile | null;
 }
 
 export interface RunRequest {

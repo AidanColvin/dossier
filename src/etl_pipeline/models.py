@@ -70,6 +70,7 @@ class RunResult:
     ticker: str = ""
     query: str = ""
     official: str = ""
+    profile: Any = None
 
 
 def record_to_dict(record: Record) -> dict[str, Any]:

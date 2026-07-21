@@ -8,6 +8,13 @@ import { NextResponse } from "next/server";
 import { demoResponse } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+// A GET with no cache directive is fair game for the CDN, which will happily
+// keep serving a stale run — including one produced before the response even
+// carried a profile. Every answer here is per-entity and live, so none of it
+// is cacheable.
+const NO_STORE = "no-store, max-age=0, must-revalidate";
 
 export async function GET(request: Request) {
   const entity = new URL(request.url).searchParams.get("entity") ?? "NVIDIA";
@@ -25,7 +32,7 @@ export async function GET(request: Request) {
       });
       if (upstream.ok) {
         return NextResponse.json(await upstream.json(), {
-          headers: { "x-dossier-mode": "live" },
+          headers: { "x-dossier-mode": "live", "Cache-Control": NO_STORE },
         });
       }
     } catch {
@@ -34,6 +41,6 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json(demoResponse(entity), {
-    headers: { "x-dossier-mode": "demo" },
+    headers: { "x-dossier-mode": "demo", "Cache-Control": NO_STORE },
   });
 }

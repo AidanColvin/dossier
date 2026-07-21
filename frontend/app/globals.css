@@ -79,7 +79,13 @@ body {
 }
 
 body {
-  background: var(--bg);
+  /* A whisper of colour behind the white canvas so the surface has an edge.
+     Still reads as a white page — the tint is barely above #fff. */
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(0, 122, 255, 0.05), transparent 62%),
+    radial-gradient(900px 480px at 92% 4%, rgba(94, 92, 230, 0.045), transparent 58%),
+    #f7f7f9;
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--sans);
   line-height: 1.5;
@@ -214,6 +220,284 @@ a:hover {
 
 .page--wide {
   max-width: 1360px;
+}
+
+/* ---------------------------------------------------------------------------
+   Canvas — the rounded surface every view sits on. Gives the app a body
+   instead of leaving content floating on the page edge.
+   ------------------------------------------------------------------------- */
+
+.canvas {
+  max-width: 1180px;
+  margin: 0 auto;
+  background: var(--panel);
+  border-radius: 26px;
+  box-shadow: var(--shadow-2);
+  padding: 56px 56px 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* A barely-there wash so the canvas reads as a surface, not a plain div. */
+.canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 340px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 122, 255, 0.035) 0%,
+    rgba(94, 92, 230, 0.02) 40%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.canvas > * {
+  position: relative;
+}
+
+.canvas__eyebrow {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 6px;
+}
+
+.canvas__lede {
+  color: var(--muted);
+  font-size: 14.5px;
+  margin: 0 0 34px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The two-column split: copy and search on the left, sample output right. */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 52px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .canvas {
+    padding: 34px 22px 40px;
+    border-radius: 20px;
+  }
+}
+
+.split h2 {
+  font-size: clamp(28px, 3.6vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-weight: 650;
+  margin: 0 0 16px;
+}
+
+.split p {
+  color: var(--muted);
+  font-size: 15.5px;
+  margin: 0 0 28px;
+  max-width: 46ch;
+}
+
+/* The sample-output panel: shows what a run produces before you run one. */
+.sample {
+  background: linear-gradient(160deg, rgba(94, 92, 230, 0.07), rgba(0, 122, 255, 0.05));
+  border-radius: var(--r-xl);
+  padding: 22px;
+}
+
+.sample__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.sample__card {
+  background: var(--panel);
+  border-radius: var(--r-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-1);
+}
+
+/* ---------------------------------------------------------------------------
+   Company fact banner and metric tiles
+   ------------------------------------------------------------------------- */
+
+.fact-banner {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-bottom: 26px;
+}
+
+.fact-banner__name {
+  font-size: 27px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin-right: 4px;
+}
+
+.fact-banner__ticker {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: var(--r-sm);
+  background: var(--ink);
+  color: #fff;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.metric {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+}
+
+.metric__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 7px;
+}
+
+.metric__value {
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+}
+
+.metric__delta {
+  margin-top: 5px;
+  font-size: 12.5px;
+  font-weight: 550;
+}
+
+/* ---------------------------------------------------------------------------
+   Chart furniture shared by the SVG charts
+   ------------------------------------------------------------------------- */
+
+.chart-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.chart-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.bars-v {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.bars-v__col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+}
+
+.bars-v__value {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.bars-v__bar {
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  transition: height 0.5s var(--spring);
+}
+
+/* ---------------------------------------------------------------------------
+   Feature cards — the "what you get" row under the fold
+   ------------------------------------------------------------------------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 30px;
+  margin-top: 8px;
+}
+
+.feature h3 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 14px 0 7px;
+}
+
+.feature p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.feature__icon {
+  width: 32px;
+  height: 32px;
+  color: var(--ink);
+}
+
+.section-band {
+  margin-top: 72px;
+  padding-top: 44px;
+  border-top: 1px solid var(--line);
 }
 
 /* ---------------------------------------------------------------------------
