@@ -7,8 +7,9 @@ its provenance, and presents it in a live dashboard.
 
 - **Backend** — a modular ETL pipeline (pure Python standard library) plus a
   FastAPI service. 148 tests, ~98% coverage, CI on Python 3.10–3.12.
-- **Frontend** — a Next.js + TypeScript dashboard that runs the pipeline and
-  explores the results.
+- **Frontend** — a Next.js + TypeScript workspace of eight routed views: a
+  dashboard, a pipeline console, a filterable record explorer, per-connector
+  health, analytics, multi-entity comparison, exports and an architecture page.
 
 ![dashboard](docs/screenshot.png)
 
@@ -138,8 +139,10 @@ cd frontend && npm run build # type-checks and builds the frontend
 
 - **Backend** → Render (`render.yaml`, Docker) or any container host. It reads
   `$PORT`.
-- **Frontend** → Vercel (`frontend/vercel.json`). Set `NEXT_PUBLIC_API_URL` to
-  the deployed backend URL.
+- **Frontend** → Vercel (`frontend/vercel.json`). Set `PIPELINE_API_URL` to the
+  deployed backend URL; the `/run` route handler proxies to it server-side, so
+  no CORS setup is needed. Left unset, the site runs standalone on bundled
+  sample data and labels every result as such. See [DEPLOY.md](DEPLOY.md).
 
 ## Project layout
 
@@ -152,9 +155,12 @@ src/etl_pipeline/
   core/         extract, transform, load, pipeline
   api/          app, schemas, service (FastAPI)
 frontend/
-  app/          layout, page, globals.css
-  components/   SearchForm, ResultsDashboard, RecordCard, StatCards, SourceStatusBar
-  lib/          api, types, format
+  app/          layout, globals.css, and one route per view —
+                / search/ records/ sources/ analytics/ compare/ exports/ pipeline/
+                plus the standalone /demo and /run route handlers
+  components/   shell/AppShell (nav), ui (stats, charts, records, notices)
+  lib/          api, store (shared run state), types, format,
+                sources (connector metadata), analytics, exports
 tests/          one module per source module, plus fixtures/
 Dockerfile  frontend/Dockerfile  docker-compose.yml  render.yaml  frontend/vercel.json
 ```

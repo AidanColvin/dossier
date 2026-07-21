@@ -34,3 +34,16 @@ export interface RunRequest {
   max_results?: number;
   min_sources?: number;
 }
+
+/** How a result was obtained — drives the "demo vs live" messaging. */
+export type RunMode = "demo" | "live";
+
+/** A completed run plus the metadata the UI needs to describe it. */
+export interface RunResult {
+  response: RunResponse;
+  mode: RunMode;
+  /** epoch millis; set by the client when the response lands. */
+  ranAt: number;
+  /** the request that produced it, for the "re-run" affordance. */
+  request: RunRequest;
+}

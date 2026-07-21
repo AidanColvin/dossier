@@ -55,6 +55,28 @@ Or just run `./run.sh` from the project root to start both.
 3. Set **Root Directory = `frontend`** → **Deploy**.
 
 The deployed site works for anyone with no backend, because the frontend ships
-its own `/demo` and `/run` route handlers. To serve live data instead, deploy
-the backend (Render picks up `render.yaml` automatically) and set
-`NEXT_PUBLIC_API_URL` in Vercel to the backend's URL.
+its own `/demo` and `/run` route handlers. Every page says so plainly: while no
+backend is configured, results are labelled **bundled sample data** rather than
+passed off as live API responses.
+
+## 4. Connect the live backend
+
+1. Deploy the API — Render picks up `render.yaml` automatically. Note the
+   service URL it gives you (e.g. `https://msetl-api.onrender.com`).
+2. In Vercel → **Settings → Environment Variables**, add:
+
+   ```
+   PIPELINE_API_URL = https://your-api-host
+   ```
+
+3. Redeploy.
+
+Use `PIPELINE_API_URL`, not `NEXT_PUBLIC_API_URL`. The former is read
+server-side by the `/run` route handler, which proxies to the backend, so the
+browser never calls it directly and the backend needs no CORS configuration.
+`NEXT_PUBLIC_API_URL` points the browser straight at the API and only works if
+the backend allows your Vercel origin.
+
+Visit **/pipeline** on the deployed site to confirm it worked — that page probes
+the backend's `/health` endpoint on every load and reports *Connected to a live
+backend*, *Backend configured but unreachable*, or *Running standalone*.

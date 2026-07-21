@@ -1,52 +1,1560 @@
 {
-  "nvidia": {
+ "nvidia": {
+  "sources": [
+   {
+    "source": "sec_edgar",
+    "ok": true,
+    "error": "",
+    "count": 5
+   },
+   {
+    "source": "openalex",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "clinicaltrials",
+    "ok": true,
+    "error": "",
+    "count": 1
+   },
+   {
+    "source": "nih_reporter",
+    "ok": true,
+    "error": "",
+    "count": 2
+   }
+  ],
+  "records": [
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001045810-24-100274",
+    "title": "8-K filed 2024-08-28 \u2014 Current report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=8-K",
+    "date": "2024-08-28",
+    "entity": "NVIDIA",
     "sources": [
-      {"source": "sec_edgar", "ok": true, "error": "", "count": 3},
-      {"source": "openalex", "ok": true, "error": "", "count": 2},
-      {"source": "clinicaltrials", "ok": true, "error": "", "count": 1},
-      {"source": "nih_reporter", "ok": true, "error": "", "count": 2}
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=8-K",
+     "https://www.sec.gov"
     ],
-    "records": [
-      {"source": "sec_edgar", "record_type": "filing", "native_id": "0001045810-24-000029",
-       "title": "10-K filed 2024-02-21 — Annual report", "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000029/nvda-20240128.htm",
-       "date": "2024-02-21", "entity": "NVIDIA",
-       "sources": ["https://www.sec.gov/Archives/edgar/data/1045810/000104581024000029/nvda-20240128.htm", "https://www.sec.gov"],
-       "verified": true, "extra": {"form": "10-K", "report_date": "2024-01-28", "source_count": 2}},
-      {"source": "openalex", "record_type": "paper", "native_id": "https://openalex.org/W4392011001",
-       "title": "Scaling laws for transformer inference on accelerator hardware", "url": "https://doi.org/10.1145/3620665.3640366",
-       "date": "2024-04-27", "entity": "NVIDIA",
-       "sources": ["https://doi.org/10.1145/3620665.3640366"],
-       "verified": true, "extra": {"journal": "ASPLOS", "doi": "https://doi.org/10.1145/3620665.3640366", "source_count": 1}},
-      {"source": "sec_edgar", "record_type": "filing", "native_id": "0001045810-24-000015",
-       "title": "8-K filed 2024-02-21 — Current report", "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000015/d8k.htm",
-       "date": "2024-02-21", "entity": "NVIDIA",
-       "sources": ["https://www.sec.gov/Archives/edgar/data/1045810/000104581024000015/d8k.htm", "https://www.sec.gov"],
-       "verified": true, "extra": {"form": "8-K", "report_date": "", "source_count": 2}},
-      {"source": "nih_reporter", "record_type": "grant", "native_id": "5R01EB000001-03",
-       "title": "GPU-accelerated reconstruction for real-time medical imaging", "url": "https://reporter.nih.gov/project-details/10700123",
-       "date": "2024-01-15", "entity": "NVIDIA",
-       "sources": ["https://reporter.nih.gov/project-details/10700123"],
-       "verified": true, "extra": {"organization": "STANFORD UNIVERSITY", "fiscal_year": "2024", "source_count": 1}},
-      {"source": "openalex", "record_type": "paper", "native_id": "https://openalex.org/W4385500002",
-       "title": "Sparse attention kernels for long-context language models", "url": "https://doi.org/10.48550/arXiv.2307.08691",
-       "date": "2023-11-02", "entity": "NVIDIA",
-       "sources": ["https://doi.org/10.48550/arXiv.2307.08691"],
-       "verified": true, "extra": {"journal": "NeurIPS", "doi": "https://doi.org/10.48550/arXiv.2307.08691", "source_count": 1}},
-      {"source": "clinicaltrials", "record_type": "trial", "native_id": "NCT05500123",
-       "title": "AI-Assisted Diagnostic Imaging Using Accelerated Compute", "url": "https://clinicaltrials.gov/study/NCT05500123",
-       "date": "2023-06-01", "entity": "NVIDIA",
-       "sources": ["https://clinicaltrials.gov/study/NCT05500123"],
-       "verified": true, "extra": {"status": "RECRUITING", "source_count": 1}},
-      {"source": "sec_edgar", "record_type": "filing", "native_id": "0001045810-24-000010",
-       "title": "4 filed 2024-01-05 — Statement of changes in beneficial ownership", "url": "https://www.sec.gov/Archives/edgar/data/1045810/000104581024000010/form4.xml",
-       "date": "2024-01-05", "entity": "NVIDIA",
-       "sources": ["https://www.sec.gov/Archives/edgar/data/1045810/000104581024000010/form4.xml", "https://www.sec.gov"],
-       "verified": true, "extra": {"form": "4", "report_date": "", "source_count": 2}},
-      {"source": "nih_reporter", "record_type": "grant", "native_id": "1R21CA000045-01",
-       "title": "Deep learning biomarkers for early cancer detection", "url": "https://reporter.nih.gov/project-details/10655098",
-       "date": "2022-09-01", "entity": "NVIDIA",
-       "sources": ["https://reporter.nih.gov/project-details/10655098"],
-       "verified": true, "extra": {"organization": "UNIVERSITY OF EXAMPLE", "fiscal_year": "2022", "source_count": 1}}
-    ]
-  }
+    "verified": true,
+    "extra": {
+     "form": "8-K",
+     "report_date": "2024-08-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001045810-24-100137",
+    "title": "10-Q filed 2024-05-29 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=10-Q",
+    "date": "2024-05-29",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2024-04-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001045810-24-100411",
+    "title": "DEF 14A filed 2024-04-12 \u2014 Proxy statement",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=DEF 14A",
+    "date": "2024-04-12",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=DEF 14A",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "DEF 14A",
+     "report_date": "2024-04-12",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001045810-24-100000",
+    "title": "10-K filed 2024-02-21 \u2014 Annual report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=10-K",
+    "date": "2024-02-21",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=10-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-K",
+     "report_date": "2024-01-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4391770585",
+    "title": "Scaling laws for transformer inference on accelerator hardware",
+    "url": "https://openalex.org/W4391770585",
+    "date": "2024-01-18",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://openalex.org/W4391770585",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/scaling-laws-for-transfo"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "Journal of Machine Learning Research",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001045810-23-100548",
+    "title": "10-Q filed 2023-11-21 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=10-Q",
+    "date": "2023-11-21",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1045810&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2023-10-29",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4391190561",
+    "title": "Sparse attention kernels for long-context models",
+    "url": "https://openalex.org/W4391190561",
+    "date": "2023-09-04",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://openalex.org/W4391190561",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/sparse-attention-kernels"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "NeurIPS Proceedings",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "R01864569",
+    "title": "Accelerated Computing Infrastructure for Biomedical Imaging",
+    "url": "https://reporter.nih.gov/search/nvidia/projects",
+    "date": "2023-09-01",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://reporter.nih.gov/search/nvidia/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NIBIB",
+     "activity_code": "R01",
+     "award_amount": 1842000,
+     "fiscal_year": "2023",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05297384",
+    "title": "Computer-Assisted Detection in Diagnostic Imaging Workflows",
+    "url": "https://clinicaltrials.gov/study/NCT05297384",
+    "date": "2023-05-02",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05297384",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Recruiting",
+     "phase": "Phase 2",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4392258138",
+    "title": "Mixed-precision training at trillion-parameter scale",
+    "url": "https://openalex.org/W4392258138",
+    "date": "2023-03-22",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://openalex.org/W4392258138"
+    ],
+    "verified": false,
+    "extra": {
+     "journal": "arXiv",
+     "source_count": 1
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "U01320441",
+    "title": "GPU-Enabled Genomic Variant Calling at Population Scale",
+    "url": "https://reporter.nih.gov/search/nvidia/projects",
+    "date": "2022-07-01",
+    "entity": "NVIDIA",
+    "sources": [
+     "https://reporter.nih.gov/search/nvidia/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NHGRI",
+     "activity_code": "U01",
+     "award_amount": 2310000,
+     "fiscal_year": "2022",
+     "source_count": 2
+    }
+   }
+  ]
+ },
+ "moderna": {
+  "sources": [
+   {
+    "source": "sec_edgar",
+    "ok": true,
+    "error": "",
+    "count": 5
+   },
+   {
+    "source": "openalex",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "clinicaltrials",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "nih_reporter",
+    "ok": true,
+    "error": "",
+    "count": 2
+   }
+  ],
+  "records": [
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001682852-24-100274",
+    "title": "8-K filed 2024-08-28 \u2014 Current report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=8-K",
+    "date": "2024-08-28",
+    "entity": "Moderna",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=8-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "8-K",
+     "report_date": "2024-08-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001682852-24-100137",
+    "title": "10-Q filed 2024-05-29 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=10-Q",
+    "date": "2024-05-29",
+    "entity": "Moderna",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2024-04-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001682852-24-100411",
+    "title": "DEF 14A filed 2024-04-12 \u2014 Proxy statement",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=DEF 14A",
+    "date": "2024-04-12",
+    "entity": "Moderna",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=DEF 14A",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "DEF 14A",
+     "report_date": "2024-04-12",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4396264322",
+    "title": "Lipid nanoparticle formulation stability across cold-chain conditions",
+    "url": "https://openalex.org/W4396264322",
+    "date": "2024-03-11",
+    "entity": "Moderna",
+    "sources": [
+     "https://openalex.org/W4396264322",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/lipid-nanoparticle-formu"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "Nature Biotechnology",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001682852-24-100000",
+    "title": "10-K filed 2024-02-21 \u2014 Annual report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=10-K",
+    "date": "2024-02-21",
+    "entity": "Moderna",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=10-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-K",
+     "report_date": "2024-01-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05602102",
+    "title": "Safety and Immunogenicity of a Seasonal mRNA Vaccine in Adults",
+    "url": "https://clinicaltrials.gov/study/NCT05602102",
+    "date": "2024-01-15",
+    "entity": "Moderna",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05602102",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Active, not recruiting",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001682852-23-100548",
+    "title": "10-Q filed 2023-11-21 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=10-Q",
+    "date": "2023-11-21",
+    "entity": "Moderna",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1682852&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2023-10-29",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4396700072",
+    "title": "Immunogenicity of bivalent mRNA constructs in older adults",
+    "url": "https://openalex.org/W4396700072",
+    "date": "2023-07-19",
+    "entity": "Moderna",
+    "sources": [
+     "https://openalex.org/W4396700072",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/immunogenicity-of-bivale"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "The Lancet",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "R01117233",
+    "title": "mRNA Platform Development for Emerging Pathogens",
+    "url": "https://reporter.nih.gov/search/moderna/projects",
+    "date": "2023-06-01",
+    "entity": "Moderna",
+    "sources": [
+     "https://reporter.nih.gov/search/moderna/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NIAID",
+     "activity_code": "R01",
+     "award_amount": 3120000,
+     "fiscal_year": "2023",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05399708",
+    "title": "mRNA-Based Individualised Neoantigen Therapy in Melanoma",
+    "url": "https://clinicaltrials.gov/study/NCT05399708",
+    "date": "2023-04-20",
+    "entity": "Moderna",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05399708",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Recruiting",
+     "phase": "Phase 2",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4390033669",
+    "title": "Codon optimisation strategies for mRNA therapeutics",
+    "url": "https://openalex.org/W4390033669",
+    "date": "2022-11-02",
+    "entity": "Moderna",
+    "sources": [
+     "https://openalex.org/W4390033669"
+    ],
+    "verified": false,
+    "extra": {
+     "journal": "Molecular Therapy",
+     "source_count": 1
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05102243",
+    "title": "Respiratory Syncytial Virus Vaccine in Adults Aged 60+",
+    "url": "https://clinicaltrials.gov/study/NCT05102243",
+    "date": "2022-08-11",
+    "entity": "Moderna",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05102243",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Completed",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "R21536183",
+    "title": "Thermostable Formulations for Low-Resource Settings",
+    "url": "https://reporter.nih.gov/search/moderna/projects",
+    "date": "2022-04-01",
+    "entity": "Moderna",
+    "sources": [
+     "https://reporter.nih.gov/search/moderna/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NIAID",
+     "activity_code": "R21",
+     "award_amount": 425000,
+     "fiscal_year": "2022",
+     "source_count": 2
+    }
+   }
+  ]
+ },
+ "pfizer": {
+  "sources": [
+   {
+    "source": "sec_edgar",
+    "ok": true,
+    "error": "",
+    "count": 5
+   },
+   {
+    "source": "openalex",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "clinicaltrials",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "nih_reporter",
+    "ok": true,
+    "error": "",
+    "count": 2
+   }
+  ],
+  "records": [
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000078003-24-100274",
+    "title": "8-K filed 2024-08-28 \u2014 Current report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=8-K",
+    "date": "2024-08-28",
+    "entity": "Pfizer",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=8-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "8-K",
+     "report_date": "2024-08-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000078003-24-100137",
+    "title": "10-Q filed 2024-05-29 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=10-Q",
+    "date": "2024-05-29",
+    "entity": "Pfizer",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2024-04-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000078003-24-100411",
+    "title": "DEF 14A filed 2024-04-12 \u2014 Proxy statement",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=DEF 14A",
+    "date": "2024-04-12",
+    "entity": "Pfizer",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=DEF 14A",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "DEF 14A",
+     "report_date": "2024-04-12",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4391659067",
+    "title": "Real-world effectiveness of an oral antiviral in outpatient settings",
+    "url": "https://openalex.org/W4391659067",
+    "date": "2024-04-02",
+    "entity": "Pfizer",
+    "sources": [
+     "https://openalex.org/W4391659067",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/real-world-effectiveness"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "New England Journal of Medicine",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000078003-24-100000",
+    "title": "10-K filed 2024-02-21 \u2014 Annual report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=10-K",
+    "date": "2024-02-21",
+    "entity": "Pfizer",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=10-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-K",
+     "report_date": "2024-01-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05141776",
+    "title": "Next-Generation Pneumococcal Conjugate Vaccine in Infants",
+    "url": "https://clinicaltrials.gov/study/NCT05141776",
+    "date": "2024-02-19",
+    "entity": "Pfizer",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05141776",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Recruiting",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000078003-23-100548",
+    "title": "10-Q filed 2023-11-21 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=10-Q",
+    "date": "2023-11-21",
+    "entity": "Pfizer",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=78003&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2023-10-29",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05606075",
+    "title": "Oral Antiviral in Standard-Risk Non-Hospitalised Adults",
+    "url": "https://clinicaltrials.gov/study/NCT05606075",
+    "date": "2023-11-06",
+    "entity": "Pfizer",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05606075",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Completed",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "U19903898",
+    "title": "Antimicrobial Resistance Surveillance Network",
+    "url": "https://reporter.nih.gov/search/pfizer/projects",
+    "date": "2023-08-01",
+    "entity": "Pfizer",
+    "sources": [
+     "https://reporter.nih.gov/search/pfizer/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NIAID",
+     "activity_code": "U19",
+     "award_amount": 4560000,
+     "fiscal_year": "2023",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4395543721",
+    "title": "Pharmacokinetics of a next-generation pneumococcal conjugate",
+    "url": "https://openalex.org/W4395543721",
+    "date": "2023-06-15",
+    "entity": "Pfizer",
+    "sources": [
+     "https://openalex.org/W4395543721",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/pharmacokinetics-of-a-ne"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "Vaccine",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4390433208",
+    "title": "Post-marketing surveillance methods for large vaccine cohorts",
+    "url": "https://openalex.org/W4390433208",
+    "date": "2022-12-08",
+    "entity": "Pfizer",
+    "sources": [
+     "https://openalex.org/W4390433208"
+    ],
+    "verified": false,
+    "extra": {
+     "journal": "JAMA",
+     "source_count": 1
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "R01115449",
+    "title": "Maternal Immunisation and Infant Outcomes",
+    "url": "https://reporter.nih.gov/search/pfizer/projects",
+    "date": "2022-09-01",
+    "entity": "Pfizer",
+    "sources": [
+     "https://reporter.nih.gov/search/pfizer/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NICHD",
+     "activity_code": "R01",
+     "award_amount": 1275000,
+     "fiscal_year": "2022",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05110563",
+    "title": "Gene Therapy for Haemophilia B: Long-Term Follow-Up",
+    "url": "https://clinicaltrials.gov/study/NCT05110563",
+    "date": "2022-06-28",
+    "entity": "Pfizer",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05110563",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Active, not recruiting",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   }
+  ]
+ },
+ "alphabet": {
+  "sources": [
+   {
+    "source": "sec_edgar",
+    "ok": true,
+    "error": "",
+    "count": 5
+   },
+   {
+    "source": "openalex",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "clinicaltrials",
+    "ok": true,
+    "error": "",
+    "count": 1
+   },
+   {
+    "source": "nih_reporter",
+    "ok": true,
+    "error": "",
+    "count": 1
+   }
+  ],
+  "records": [
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001652044-24-100274",
+    "title": "8-K filed 2024-08-28 \u2014 Current report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=8-K",
+    "date": "2024-08-28",
+    "entity": "Alphabet",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=8-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "8-K",
+     "report_date": "2024-08-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001652044-24-100137",
+    "title": "10-Q filed 2024-05-29 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=10-Q",
+    "date": "2024-05-29",
+    "entity": "Alphabet",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2024-04-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001652044-24-100411",
+    "title": "DEF 14A filed 2024-04-12 \u2014 Proxy statement",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=DEF 14A",
+    "date": "2024-04-12",
+    "entity": "Alphabet",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=DEF 14A",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "DEF 14A",
+     "report_date": "2024-04-12",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4396973644",
+    "title": "Differentially private training for production language models",
+    "url": "https://openalex.org/W4396973644",
+    "date": "2024-02-27",
+    "entity": "Alphabet",
+    "sources": [
+     "https://openalex.org/W4396973644",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/differentially-private-t"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "arXiv",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001652044-24-100000",
+    "title": "10-K filed 2024-02-21 \u2014 Annual report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=10-K",
+    "date": "2024-02-21",
+    "entity": "Alphabet",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=10-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-K",
+     "report_date": "2024-01-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0001652044-23-100548",
+    "title": "10-Q filed 2023-11-21 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=10-Q",
+    "date": "2023-11-21",
+    "entity": "Alphabet",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=1652044&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2023-10-29",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4398267808",
+    "title": "Retrieval-augmented generation over enterprise corpora",
+    "url": "https://openalex.org/W4398267808",
+    "date": "2023-10-12",
+    "entity": "Alphabet",
+    "sources": [
+     "https://openalex.org/W4398267808",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/retrieval-augmented-gene"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "ACL Anthology",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05453304",
+    "title": "Machine Learning Triage for Diabetic Retinopathy Screening",
+    "url": "https://clinicaltrials.gov/study/NCT05453304",
+    "date": "2023-09-13",
+    "entity": "Alphabet",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05453304",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Recruiting",
+     "phase": "N/A",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "R01830542",
+    "title": "Federated Learning for Multi-Site Clinical Datasets",
+    "url": "https://reporter.nih.gov/search/alphabet/projects",
+    "date": "2023-07-01",
+    "entity": "Alphabet",
+    "sources": [
+     "https://reporter.nih.gov/search/alphabet/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NLM",
+     "activity_code": "R01",
+     "award_amount": 1610000,
+     "fiscal_year": "2023",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4395740068",
+    "title": "Energy efficiency of datacentre-scale ML accelerators",
+    "url": "https://openalex.org/W4395740068",
+    "date": "2023-01-30",
+    "entity": "Alphabet",
+    "sources": [
+     "https://openalex.org/W4395740068"
+    ],
+    "verified": false,
+    "extra": {
+     "journal": "ISCA Proceedings",
+     "source_count": 1
+    }
+   }
+  ]
+ },
+ "eli-lilly": {
+  "sources": [
+   {
+    "source": "sec_edgar",
+    "ok": true,
+    "error": "",
+    "count": 5
+   },
+   {
+    "source": "openalex",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "clinicaltrials",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "nih_reporter",
+    "ok": true,
+    "error": "",
+    "count": 2
+   }
+  ],
+  "records": [
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000059478-24-100274",
+    "title": "8-K filed 2024-08-28 \u2014 Current report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=8-K",
+    "date": "2024-08-28",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=8-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "8-K",
+     "report_date": "2024-08-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000059478-24-100137",
+    "title": "10-Q filed 2024-05-29 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=10-Q",
+    "date": "2024-05-29",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2024-04-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4396702741",
+    "title": "Dual incretin receptor agonism and weight trajectory over 72 weeks",
+    "url": "https://openalex.org/W4396702741",
+    "date": "2024-05-08",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://openalex.org/W4396702741",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/dual-incretin-receptor-a"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "New England Journal of Medicine",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000059478-24-100411",
+    "title": "DEF 14A filed 2024-04-12 \u2014 Proxy statement",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=DEF 14A",
+    "date": "2024-04-12",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=DEF 14A",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "DEF 14A",
+     "report_date": "2024-04-12",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05706472",
+    "title": "Tirzepatide in Adults With Obesity and Cardiovascular Risk",
+    "url": "https://clinicaltrials.gov/study/NCT05706472",
+    "date": "2024-03-04",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05706472",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Recruiting",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000059478-24-100000",
+    "title": "10-K filed 2024-02-21 \u2014 Annual report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=10-K",
+    "date": "2024-02-21",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=10-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-K",
+     "report_date": "2024-01-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000059478-23-100548",
+    "title": "10-Q filed 2023-11-21 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=10-Q",
+    "date": "2023-11-21",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=59478&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2023-10-29",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4394788761",
+    "title": "Amyloid clearance kinetics in early symptomatic Alzheimer's disease",
+    "url": "https://openalex.org/W4394788761",
+    "date": "2023-08-21",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://openalex.org/W4394788761",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/amyloid-clearance-kineti"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "JAMA Neurology",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "R01922716",
+    "title": "Incretin Biology and Metabolic Adaptation",
+    "url": "https://reporter.nih.gov/search/eli-lilly/projects",
+    "date": "2023-05-01",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://reporter.nih.gov/search/eli-lilly/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NIDDK",
+     "activity_code": "R01",
+     "award_amount": 2040000,
+     "fiscal_year": "2023",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05455383",
+    "title": "Anti-Amyloid Therapy in Preclinical Alzheimer's Disease",
+    "url": "https://clinicaltrials.gov/study/NCT05455383",
+    "date": "2023-01-23",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05455383",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Active, not recruiting",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4391261960",
+    "title": "Continuous glucose monitoring endpoints in phase 3 design",
+    "url": "https://openalex.org/W4391261960",
+    "date": "2022-10-14",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://openalex.org/W4391261960"
+    ],
+    "verified": false,
+    "extra": {
+     "journal": "Diabetes Care",
+     "source_count": 1
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "U01474864",
+    "title": "Biomarkers of Early Neurodegeneration",
+    "url": "https://reporter.nih.gov/search/eli-lilly/projects",
+    "date": "2022-10-01",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://reporter.nih.gov/search/eli-lilly/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NIA",
+     "activity_code": "U01",
+     "award_amount": 3380000,
+     "fiscal_year": "2022",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05287115",
+    "title": "Once-Weekly Basal Insulin in Type 2 Diabetes",
+    "url": "https://clinicaltrials.gov/study/NCT05287115",
+    "date": "2022-07-18",
+    "entity": "Eli Lilly",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05287115",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Completed",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   }
+  ]
+ },
+ "regeneron": {
+  "sources": [
+   {
+    "source": "sec_edgar",
+    "ok": true,
+    "error": "",
+    "count": 5
+   },
+   {
+    "source": "openalex",
+    "ok": true,
+    "error": "",
+    "count": 3
+   },
+   {
+    "source": "clinicaltrials",
+    "ok": true,
+    "error": "",
+    "count": 2
+   },
+   {
+    "source": "nih_reporter",
+    "ok": true,
+    "error": "",
+    "count": 2
+   }
+  ],
+  "records": [
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000872589-24-100274",
+    "title": "8-K filed 2024-08-28 \u2014 Current report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=8-K",
+    "date": "2024-08-28",
+    "entity": "Regeneron",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=8-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "8-K",
+     "report_date": "2024-08-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000872589-24-100137",
+    "title": "10-Q filed 2024-05-29 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=10-Q",
+    "date": "2024-05-29",
+    "entity": "Regeneron",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2024-04-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000872589-24-100411",
+    "title": "DEF 14A filed 2024-04-12 \u2014 Proxy statement",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=DEF 14A",
+    "date": "2024-04-12",
+    "entity": "Regeneron",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=DEF 14A",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "DEF 14A",
+     "report_date": "2024-04-12",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000872589-24-100000",
+    "title": "10-K filed 2024-02-21 \u2014 Annual report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=10-K",
+    "date": "2024-02-21",
+    "entity": "Regeneron",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=10-K",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-K",
+     "report_date": "2024-01-28",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4392565030",
+    "title": "Monoclonal antibody cocktails against evolving viral variants",
+    "url": "https://openalex.org/W4392565030",
+    "date": "2024-01-09",
+    "entity": "Regeneron",
+    "sources": [
+     "https://openalex.org/W4392565030",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/monoclonal-antibody-cock"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "Science",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "sec_edgar",
+    "record_type": "filing",
+    "native_id": "0000872589-23-100548",
+    "title": "10-Q filed 2023-11-21 \u2014 Quarterly report",
+    "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=10-Q",
+    "date": "2023-11-21",
+    "entity": "Regeneron",
+    "sources": [
+     "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=872589&type=10-Q",
+     "https://www.sec.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "form": "10-Q",
+     "report_date": "2023-10-29",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05596251",
+    "title": "Antibody Cocktail for Immunocompromised Prophylaxis",
+    "url": "https://clinicaltrials.gov/study/NCT05596251",
+    "date": "2023-10-30",
+    "entity": "Regeneron",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05596251",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Recruiting",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4395772844",
+    "title": "Genetic association study of 500,000 exomes and lipid traits",
+    "url": "https://openalex.org/W4395772844",
+    "date": "2023-05-25",
+    "entity": "Regeneron",
+    "sources": [
+     "https://openalex.org/W4395772844",
+     "https://api.openalex.org",
+     "https://doi.org/10.1000/genetic-association-stud"
+    ],
+    "verified": true,
+    "extra": {
+     "journal": "Nature Genetics",
+     "source_count": 3
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "U01697389",
+    "title": "Exome Sequencing for Rare Disease Gene Discovery",
+    "url": "https://reporter.nih.gov/search/regeneron/projects",
+    "date": "2023-04-01",
+    "entity": "Regeneron",
+    "sources": [
+     "https://reporter.nih.gov/search/regeneron/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NHGRI",
+     "activity_code": "U01",
+     "award_amount": 5120000,
+     "fiscal_year": "2023",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "clinicaltrials",
+    "record_type": "trial",
+    "native_id": "NCT05156074",
+    "title": "High-Dose Aflibercept in Diabetic Macular Oedema",
+    "url": "https://clinicaltrials.gov/study/NCT05156074",
+    "date": "2022-12-05",
+    "entity": "Regeneron",
+    "sources": [
+     "https://clinicaltrials.gov/study/NCT05156074",
+     "https://clinicaltrials.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "status": "Completed",
+     "phase": "Phase 3",
+     "source_count": 2
+    }
+   },
+   {
+    "source": "openalex",
+    "record_type": "paper",
+    "native_id": "https://openalex.org/W4390253220",
+    "title": "VEGF inhibition durability in neovascular retinal disease",
+    "url": "https://openalex.org/W4390253220",
+    "date": "2022-09-16",
+    "entity": "Regeneron",
+    "sources": [
+     "https://openalex.org/W4390253220"
+    ],
+    "verified": false,
+    "extra": {
+     "journal": "Ophthalmology",
+     "source_count": 1
+    }
+   },
+   {
+    "source": "nih_reporter",
+    "record_type": "grant",
+    "native_id": "R01259987",
+    "title": "Structural Biology of Antibody-Antigen Recognition",
+    "url": "https://reporter.nih.gov/search/regeneron/projects",
+    "date": "2022-08-01",
+    "entity": "Regeneron",
+    "sources": [
+     "https://reporter.nih.gov/search/regeneron/projects",
+     "https://api.reporter.nih.gov"
+    ],
+    "verified": true,
+    "extra": {
+     "organization": "NIGMS",
+     "activity_code": "R01",
+     "award_amount": 1490000,
+     "fiscal_year": "2022",
+     "source_count": 2
+    }
+   }
+  ]
+ }
 }
