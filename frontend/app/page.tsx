@@ -14,7 +14,7 @@ import {
   Financials,
   ResearchList,
 } from "@/components/Profile";
-import { useEnsureRun } from "@/lib/store";
+import { useRun } from "@/lib/store";
 
 const SUGGESTIONS = ["Apple", "NVIDIA", "Pfizer", "Moderna", "Tesla"];
 
@@ -27,7 +27,11 @@ const TABS: { key: string; label: string }[] = [
 ];
 
 export default function HomePage() {
-  const { run, loading, error, execute } = useEnsureRun();
+  // The home page deliberately does not auto-load a dossier: a first-time
+  // visitor should meet the product and a sample of its output, not a data
+  // dump for a company they did not ask about. The deeper routes still use
+  // useEnsureRun, so landing on /records directly is never empty.
+  const { run, loading, error, execute } = useRun();
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState("all");
 
