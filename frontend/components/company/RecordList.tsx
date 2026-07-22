@@ -210,9 +210,27 @@ export function RecordList({
   );
 }
 
+// Human-readable verification labels, keyed by the connector's match method.
+const VERIFY_LABEL: Record<string, string> = {
+  cik_match: "Verified · CIK match",
+  sponsor_match: "Verified · Sponsor match",
+  awardee_match: "Verified · Awardee match",
+  author_affiliation: "Verified · Author affiliation",
+};
+
+/** Takes a record. Returns its verification pill text and whether it is strict. */
+function verifyLabel(record: PipelineRecord): { text: string; strict: boolean } {
+  const method = record.verification?.method;
+  const strict = record.verification?.strict ?? record.verified;
+  if (strict && method && VERIFY_LABEL[method]) {
+    return { text: VERIFY_LABEL[method], strict: true };
+  }
+  return { text: "Unverified", strict: false };
+}
+
 /** Takes a record. Returns one list row. */
 function RecordRow({ record }: { record: PipelineRecord }) {
-  const provenance = provenanceCount(record);
+  const { text, strict } = verifyLabel(record);
   return (
     <div className="record record--roomy">
       <div className="record__body">
@@ -231,11 +249,8 @@ function RecordRow({ record }: { record: PipelineRecord }) {
           <span>{typeLabel(record.record_type)}</span>
           <span className="record__dot">·</span>
           <span>{formatDate(record.date)}</span>
-          <span
-            className={`pill ${record.verified ? "pill--verified" : "pill--source"}`}
-            title={`${provenance} provenance ${provenance === 1 ? "URL" : "URLs"}`}
-          >
-            {record.verified ? "verified" : "unverified"} · {provenance} src
+          <span className={`pill ${strict ? "pill--verified" : "pill--source"}`}>
+            {text}
           </span>
         </div>
       </div>
