@@ -242,19 +242,19 @@ All free. All primary source. No API keys.
 
 ## The frontend
 
-A Next.js App Router workspace. One shared run store (mirrored into `sessionStorage`) means a dossier loaded on one route survives navigation and refresh.
+A Next.js App Router app built around one idea: the tool is an **answer surface**, not a database browser. The information architecture is a single company page plus a persistent search, not a tour of the pipeline stages.
 
 | Route | What it is |
 |---|---|
-| `/` | **Home** — hero, search, and the full company profile (fact banner, financial charts, filings, records). Before a search: a sample-output card and an explainer. |
-| `/records` | **Explorer** — every record, filterable by source / type / verification, searchable, sortable, list or dense table. |
-| `/analytics` | **Insights** — distribution by source, type, year, and provenance depth; a source × type matrix. |
-| `/compare` | **Compare** — up to four companies side by side, by what each actually produces. |
-| `/exports` | **Export** — CSV, JSON, or Markdown, built in-browser from the loaded run. |
-| `/sources` | **Sources** — per-connector health, coverage, and how verification works. |
-| `/pipeline` | **How it works** — the architecture, plus a live probe of this deployment's backend. |
+| `/` | **Home.** An outcome headline, one centered search, and a "start here" grid of six companies. Each card carries a cached lede sentence, so the grid renders with no per-load fetching. |
+| `/company/[ticker]` | **The company page.** Shareable and stable. Opens with a generated lede sentence, a "what's new" strip, an interactive year timeline that filters the record list, the record list itself, and a provenance footer. Compare and Export are inline header actions. |
+| `/compare` | **Compare.** Two search fields, a generated finding, and two companies side by side by what each produces. Also available inline from any company page. |
 
-Charts are **hand-built, dependency-free SVG** (`components/Charts.tsx`) — a multi-series line chart and a vertical bar chart, reading the same CSS variables as the rest of the app. Nothing to ship, theme, or keep in sync. The design system is a single Apple-style token layer: system grays, system blue, one radius / shadow / motion scale.
+The header is a single slim strip: logo, a persistent search that stays visible on scroll, and an info icon that opens the "how it works" panel. Legacy routes (`/records`, `/analytics`, `/sources`, and the rest) redirect to their new home so existing links never 404.
+
+**The lede is the point.** Under the header, a deterministic two to four sentence paragraph summarizes the record set. It is generated client side by `lib/summary/generateLede.ts` with no language model and no randomness, so the same records always produce the same sentence and it renders in the same paint as the header. The comparison finding works the same way (`lib/summary/generateComparison.ts`). Both are unit tested with vitest.
+
+Charts are **hand-built, dependency-free SVG** (`components/Charts.tsx`): a multi-series line chart and a vertical bar chart, reading the same CSS variables as the rest of the app. Source identity is a neutral text label rather than a color dot; the one accent color is reserved for the verified pill. The design system is a single Apple-style token layer.
 
 ---
 
