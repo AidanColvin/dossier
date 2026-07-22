@@ -8,6 +8,8 @@
 import { useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { CompanyView } from "@/components/company/CompanyView";
+import { prettyName } from "@/lib/format";
+import { recordVisit } from "@/lib/storage/recentlyViewed";
 import { useRun } from "@/lib/store";
 
 export default function CompanyPage() {
@@ -28,13 +30,26 @@ export default function CompanyPage() {
       run?.response.ticker?.toUpperCase() === ticker.toUpperCase();
     if (already || requestedFor.current === ticker) return;
     requestedFor.current = ticker;
-    void execute({ entity: ticker, ticker, max_results: 10 });
+    void execute({ entity: ticker, ticker, max_results: 25 });
   }, [hydrated, ticker, run, execute]);
 
   const showingThisCompany =
     run &&
     (run.request.entity?.toUpperCase() === ticker.toUpperCase() ||
       run.response.ticker?.toUpperCase() === ticker.toUpperCase());
+
+  // Record the visit once this company's run has landed, so the homepage can
+  // show it under "recently viewed" on the next visit.
+  useEffect(() => {
+    if (!showingThisCompany || !run) return;
+    const profile = run.response.profile;
+    const displayTicker = profile?.ticker || ticker;
+    recordVisit(
+      displayTicker,
+      prettyName(profile?.name || run.response.entity),
+      run.response.count
+    );
+  }, [showingThisCompany, run, ticker]);
 
   return (
     <main className="page page--wide">

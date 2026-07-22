@@ -1,28 +1,28 @@
 :root {
   /* --------------------------------------------------------------------------
-     Dossier design system — one token layer shared by the CSS classes and the
+     Dossier design system - one token layer shared by the CSS classes and the
      inline-styled React surfaces. Neutrals follow the macOS/iOS system grays;
      the accent is the system blue, so every view reads with a single voice.
      ------------------------------------------------------------------------ */
 
-  /* Surfaces — a white canvas. Separation comes from hairlines and restraint,
+  /* Surfaces - a white canvas. Separation comes from hairlines and restraint,
      not from stacked gray boxes. */
   --bg: #ffffff;
   --panel: #ffffff;
   --panel-2: #fafafa;
 
-  /* Text — system label ramp (primary → quaternary). */
+  /* Text - system label ramp (primary → quaternary). */
   --ink: #1d1d1f;
   --muted: #6e6e73;
   --faint: #8e8e93;
   --ghost: #aeaeb2;
 
-  /* Hairlines — separator grays, opaque + translucent variants. */
+  /* Hairlines - separator grays, opaque + translucent variants. */
   --line: #e5e5ea;
   --line-strong: #d2d2d7;
   --hair: rgba(0, 0, 0, 0.07);
 
-  /* Accent — system blue, with a soft tint + pressed shade. */
+  /* Accent - system blue, with a soft tint + pressed shade. */
   --accent: #007aff;
   --accent-press: #0060df;
   --accent-tint: rgba(0, 122, 255, 0.1);
@@ -33,7 +33,7 @@
   --neg: #ff3b30;
   --warn: #ff9f0a;
 
-  /* Per-source hues — one stable colour per connector, used by the source
+  /* Per-source hues - one stable colour per connector, used by the source
      chips, the analytics bars, and the record rails, so a source is always
      recognisable by colour alone. */
   --src-sec: #0a84ff;
@@ -41,20 +41,20 @@
   --src-trials: #34c759;
   --src-nih: #ff9f0a;
 
-  /* Radii — a tight, consistent rounding scale. */
+  /* Radii - a tight, consistent rounding scale. */
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
   --r-xl: 22px;
   --r-pill: 999px;
 
-  /* Elevation — soft, layered, low-contrast. */
+  /* Elevation - soft, layered, low-contrast. */
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.03);
   --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.05);
   --shadow-3: 0 1px 1px rgba(0, 0, 0, 0.03), 0 16px 48px rgba(0, 0, 0, 0.07);
   --ring: 0 0 0 4px var(--accent-tint);
 
-  /* Motion — the standard system ease plus a gentle spring for interactive lifts. */
+  /* Motion - the standard system ease plus a gentle spring for interactive lifts. */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --spring: cubic-bezier(0.32, 0.72, 0, 1);
 
@@ -80,7 +80,7 @@ body {
 
 body {
   /* A whisper of colour behind the white canvas so the surface has an edge.
-     Still reads as a white page — the tint is barely above #fff. */
+     Still reads as a white page - the tint is barely above #fff. */
   background:
     radial-gradient(1100px 520px at 12% -8%, rgba(0, 122, 255, 0.05), transparent 62%),
     radial-gradient(900px 480px at 92% 4%, rgba(94, 92, 230, 0.045), transparent 58%),
@@ -111,7 +111,7 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Shell — the fixed glass header and the page canvas beneath it.
+   Shell - the fixed glass header and the page canvas beneath it.
    ------------------------------------------------------------------------- */
 
 .shell-header {
@@ -223,7 +223,7 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Canvas — the rounded surface every view sits on. Gives the app a body
+   Canvas - the rounded surface every view sits on. Gives the app a body
    instead of leaving content floating on the page edge.
    ------------------------------------------------------------------------- */
 
@@ -333,7 +333,7 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Company page — header, lede, what's new, timeline, filter chip, footer
+   Company page - header, lede, what's new, timeline, filter chip, footer
    ------------------------------------------------------------------------- */
 
 .company-head {
@@ -368,6 +368,50 @@ a:hover {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+/* The verification pill: teaches what verified means before the records. */
+.verify-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  padding: 4px 12px 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.verify-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pos);
+  flex-shrink: 0;
+}
+
+/* The source link under each financial value. */
+.metric__source {
+  display: inline-block;
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.metric__source:hover {
+  color: var(--accent);
+}
+
+/* The one-line R&D growth summary that replaced the charts. */
+.rd-sentence {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--muted);
 }
 
 /* The lede: the most important element. Fades in softly on load. */
@@ -602,7 +646,270 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Slide-over panels — compare, export, how it works
+   How it works - full page and slide-over content
+   ------------------------------------------------------------------------- */
+
+.hiw-page {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.hiw {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.hiw__h1 {
+  font-size: 36px;
+  font-weight: 550;
+  letter-spacing: -0.025em;
+  margin: 6px 0 20px;
+}
+
+.hiw__lede {
+  font-size: 18px;
+  color: var(--muted);
+  margin: 0 0 32px;
+}
+
+.hiw__h2 {
+  font-size: 20px;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+  margin: 32px 0 12px;
+}
+
+.hiw p {
+  margin: 0 0 14px;
+}
+
+.hiw__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+}
+
+.hiw__list li {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.hiw__list li:last-child {
+  border-bottom: none;
+}
+
+.hiw__foot {
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--faint);
+}
+
+/* The slide-over renders the same content at a smaller type scale. */
+.slideover__panel .hiw {
+  font-size: 15px;
+}
+
+.slideover__panel .hiw__h1 {
+  font-size: 27px;
+}
+
+.slideover__panel .hiw__lede {
+  font-size: 15.5px;
+}
+
+.slideover__panel .hiw__h2 {
+  font-size: 17px;
+}
+
+/* ---------------------------------------------------------------------------
+   Slim header - logo, search, info icon (the collapsed nav)
+   ------------------------------------------------------------------------- */
+
+.shell-header--slim {
+  gap: 20px;
+}
+
+.shell-header__search {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.header-search {
+  width: min(420px, 100%);
+}
+
+.header-search input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  border-radius: var(--r-pill);
+  padding: 7px 15px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+
+.header-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--panel);
+  box-shadow: var(--ring);
+}
+
+.shell-info {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+.shell-info:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Homepage start-here grid
+   ------------------------------------------------------------------------- */
+
+.start-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.start-card {
+  display: block;
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  background: var(--panel);
+  box-shadow: var(--shadow-1);
+  transition: transform 0.22s var(--spring), box-shadow 0.22s var(--ease),
+    border-color 0.22s var(--ease);
+}
+
+.start-card:hover {
+  text-decoration: none;
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--line-strong);
+}
+
+.start-card__head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.start-card__head strong {
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.start-card__lede {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.start-grid--three {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+/* Recently viewed strip: compact horizontal cards. */
+.recent-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.recent-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--panel);
+  color: inherit;
+  transition: border-color 0.18s var(--ease);
+}
+
+.recent-card:hover {
+  text-decoration: none;
+  border-color: var(--line-strong);
+}
+
+.recent-card__name {
+  font-size: 13.5px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+
+/* ---------------------------------------------------------------------------
+   Compare destination
+   ------------------------------------------------------------------------- */
+
+.compare-inputs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.compare-inputs__vs {
+  font-size: 13px;
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.compare-field {
+  min-width: 0;
+}
+
+.compare-col__sources {
+  margin-top: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.compare-col__source {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (max-width: 640px) {
+  .compare-inputs {
+    grid-template-columns: 1fr;
+  }
+  .compare-inputs__vs {
+    text-align: center;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Slide-over panels - compare, export, how it works
    ------------------------------------------------------------------------- */
 
 .slideover {
@@ -897,7 +1204,7 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Feature cards — the "what you get" row under the fold
+   Feature cards - the "what you get" row under the fold
    ------------------------------------------------------------------------- */
 
 .features {
@@ -934,7 +1241,7 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Hero — the home page's single, unmistakable action. Nothing competes with
+   Hero - the home page's single, unmistakable action. Nothing competes with
    the search field above the fold.
    ------------------------------------------------------------------------- */
 
@@ -994,7 +1301,7 @@ a:hover {
   color: var(--ghost);
 }
 
-/* Quick-pick entities under the field. Text links, not heavy chips — they are
+/* Quick-pick entities under the field. Text links, not heavy chips - they are
    a convenience, not the main path. */
 .suggestions {
   display: flex;
@@ -1018,7 +1325,7 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Result-type tabs — the only filter shown by default. */
+/* Result-type tabs - the only filter shown by default. */
 .tabs {
   display: flex;
   justify-content: center;
@@ -1526,7 +1833,7 @@ table.data tbody tr:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Charts — pure-CSS bars, no charting dependency.
+   Charts - pure-CSS bars, no charting dependency.
    ------------------------------------------------------------------------- */
 
 .bars {

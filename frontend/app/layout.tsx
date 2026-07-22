@@ -6,8 +6,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Dossier — Multi-Source Intelligence Pipeline",
-    template: "%s — Dossier",
+    default: "Dossier: public records for any public company",
+    template: "%s · Dossier",
   },
   description:
     "Compiles a sourced intelligence profile of any company or organization from four keyless public APIs.",
