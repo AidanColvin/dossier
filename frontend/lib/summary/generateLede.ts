@@ -4,8 +4,13 @@
 
 import type { PipelineRecord } from "@/lib/types";
 import type { LedeContext, RecordSet, SourceCount, YearCount } from "./types";
-import { pickInterestingFact } from "./pickInterestingFact";
-import { plural, sourceLabel, spell, typeLabel } from "./templates";
+import { pickHeadline } from "./pickHeadline";
+
+// buildContext still backs generateComparison, which needs the aggregate
+// shape (source counts, busiest year) to contrast two companies. The lede
+// itself no longer reads from it: a reader does not care how many records are
+// in the index, only what the company is doing, which pickHeadline answers
+// from the records directly.
 
 /** Takes a record. Returns its four digit year, or null when undated. */
 function yearOf(record: PipelineRecord): number | null {
@@ -90,58 +95,12 @@ export function buildContext(set: RecordSet): LedeContext {
   };
 }
 
-/** Takes a context. Returns the opening sentence about scale and span. */
-function scaleSentence(context: LedeContext): string {
-  const { entity, total, verified, sources, firstYear, lastYear } = context;
-
-  if (total === 0) {
-    return `${entity} has no public records across the four sources searched.`;
-  }
-
-  const noun = plural(total, "record");
-  const verifiedClause =
-    verified === total
-      ? `${total} verified ${noun}`
-      : verified > 0
-        ? `${total} ${noun}, ${verified} of them verified,`
-        : `${total} ${noun}`;
-
-  const sourceClause =
-    sources.length === 1
-      ? `all from ${sourceLabel(sources[0].source)}`
-      : `across ${spell(sources.length)} ${plural(sources.length, "source")}`;
-
-  let spanClause = "";
-  if (firstYear !== null && lastYear !== null) {
-    spanClause =
-      firstYear === lastYear
-        ? ` in ${firstYear}`
-        : `, spanning ${firstYear} to ${lastYear}`;
-  }
-
-  return `${entity} has ${verifiedClause} ${sourceClause}${spanClause}.`;
-}
-
 /**
- * Takes a record set. Returns the lede: two sentences at most. The first
- * states scale and span, the second is the one distinctive fact chosen by
- * pickInterestingFact, so no two companies close on the same clause. Handles
- * the empty and single record cases.
+ * Takes a record set. Returns the lede: one or two sentences naming what the
+ * company is actually doing, chosen by pickHeadline. No record counts, no
+ * source counts, no date span; that bookkeeping lives in the footer, where a
+ * reader can find it if they want it but is never made to read it first.
  */
 export function generateLede(set: RecordSet): string {
-  const context = buildContext(set);
-
-  if (context.total === 0) {
-    return scaleSentence(context);
-  }
-  if (context.total === 1) {
-    const only = set.records[0];
-    const year = only.date.slice(0, 4);
-    return `${context.entity} has one public record, a ${typeLabel(
-      only.record_type
-    )} from ${sourceLabel(only.source)}${year ? ` dated ${year}` : ""}.`;
-  }
-
-  const fact = pickInterestingFact({ entity: set.entity, records: set.records });
-  return [scaleSentence(context), fact].filter(Boolean).join(" ");
+  return pickHeadline({ entity: set.entity, records: set.records });
 }

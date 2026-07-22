@@ -1,9 +1,11 @@
-// Unit tests for the lede generator. These lock down the deterministic
-// behaviour: a given record set must always produce the same paragraph.
+// Unit tests for the lede generator. The lede names what the company is
+// actually doing (its most recent substantive activity), not the shape of the
+// record set. These tests lock down that a given record set always produces
+// the same, substance-first paragraph.
 
 import { describe, expect, it } from "vitest";
 import type { PipelineRecord } from "@/lib/types";
-import { buildContext, generateLede } from "./generateLede";
+import { generateLede } from "./generateLede";
 import type { RecordSet } from "./types";
 
 /** Takes overrides. Returns a minimal valid record for a test. */
@@ -32,92 +34,109 @@ describe("generateLede", () => {
   it("handles the empty set", () => {
     const lede = generateLede(set("Empty Co", []));
     expect(lede).toContain("no public records");
-    expect(lede.length).toBeGreaterThan(0);
   });
 
-  it("handles a single record", () => {
+  it("handles a single record by naming it, not counting it", () => {
     const lede = generateLede(
-      set("Solo Co", [record({ record_type: "filing", source: "sec_edgar", date: "2024-05-01" })])
+      set("Solo Co", [
+        record({ record_type: "filing", source: "sec_edgar", title: "10-K filed 2024-05-01" }),
+      ])
     );
-    expect(lede).toContain("one public record");
-    expect(lede).toContain("SEC filing");
-    expect(lede).toContain("2024");
+    expect(lede).toContain("only public record");
+    expect(lede).toContain("10-K filed 2024-05-01");
+    // No record-count or source-count framing.
+    expect(lede).not.toMatch(/\d+ (verified )?records?/);
   });
 
-  it("handles a single-source set", () => {
+  it("never states a record count, a source count, or a date span", () => {
     const records = [
-      record({ source: "sec_edgar", record_type: "filing", date: "2022-01-01" }),
-      record({ source: "sec_edgar", record_type: "filing", date: "2023-01-01" }),
-      record({ source: "sec_edgar", record_type: "filing", date: "2024-01-01" }),
+      record({ source: "clinicaltrials", record_type: "trial", title: "A Trial", date: "2026-01-01" }),
+      record({ source: "openalex", record_type: "paper", title: "A Paper", date: "2020-01-01" }),
+      record({ source: "sec_edgar", record_type: "filing", title: "x", date: "1999-01-01",
+        extra: { form: "10-K" } }),
     ];
-    const lede = generateLede(set("Filer Co", records));
-    expect(lede).toContain("all from SEC EDGAR");
-    // A single-source set has no "most active ... followed by" sentence.
-    expect(lede).not.toContain("followed by");
+    const lede = generateLede(set("Any Co", records));
+    expect(lede).not.toMatch(/\d+ (verified )?records?\b/);
+    expect(lede).not.toMatch(/across (two|three|four) sources/);
+    expect(lede).not.toMatch(/spanning \d{4} to \d{4}/);
   });
 
-  it("describes a multi-source set with dominance", () => {
+  it("names the most recent clinical trial by title", () => {
     const records = [
-      ...Array.from({ length: 10 }, () =>
-        record({ source: "clinicaltrials", record_type: "trial", date: "2026-01-01" })
-      ),
-      ...Array.from({ length: 8 }, () =>
-        record({ source: "openalex", record_type: "paper", date: "2025-01-01" })
-      ),
+      record({ source: "clinicaltrials", record_type: "trial", title: "Apple Hearing Study",
+        date: "2026-03-01" }),
+      record({ source: "openalex", record_type: "paper", title: "Old Paper", date: "2019-01-01" }),
     ];
-    const lede = generateLede(set("Microsoft Corp", records));
-    expect(lede).toContain("18 verified records");
-    expect(lede).toContain("across two sources");
-    // The second sentence is the distinctive fact, not a fixed template.
-    // Clinical trials are 10 of 18 (56%), a dominant source.
-    expect(lede).toContain("clinical trials");
-    // Two sentences at most.
+    const lede = generateLede(set("Apple", records));
+    expect(lede).toContain("Its most recent clinical trial is Apple Hearing Study");
+  });
+
+  it("adds a second sentence from a different record type when one is recent", () => {
+    const records = [
+      record({ source: "clinicaltrials", record_type: "trial", title: "Apple Hearing Study",
+        date: "2026-03-01" }),
+      record({ source: "openalex", record_type: "paper", title: "Search Relevance Paper",
+        date: "2026-02-01" }),
+    ];
+    const lede = generateLede(set("Apple", records));
+    expect(lede).toContain("Apple Hearing Study");
+    expect(lede).toContain("Search Relevance Paper");
+    // Two sentences, not a list of everything.
     expect(lede.split(". ").length).toBeLessThanOrEqual(2);
   });
 
-  it("collapses the span when all records fall in one year", () => {
+  it("does not add a second sentence of the same type as the first", () => {
     const records = [
-      record({ date: "2020-02-01" }),
-      record({ date: "2020-06-01" }),
-      record({ date: "2020-09-01" }),
+      record({ source: "openalex", record_type: "paper", title: "Newest Paper", date: "2026-03-01" }),
+      record({ source: "openalex", record_type: "paper", title: "Older Paper", date: "2026-01-01" }),
     ];
-    const lede = generateLede(set("OneYear Co", records));
-    expect(lede).toContain("in 2020");
-    expect(lede).not.toContain("spanning");
-    // The redundant busiest-year sentence is dropped for a single year.
-    expect(lede).not.toContain("busiest year");
+    const lede = generateLede(set("Research Co", records));
+    expect(lede).toContain("Newest Paper");
+    expect(lede).not.toContain("Older Paper");
   });
 
-  it("reports a wide span greater than twenty years", () => {
+  it("excludes routine ownership filings from the substantive pool", () => {
     const records = [
-      record({ date: "1998-01-01" }),
-      record({ date: "2010-01-01" }),
-      record({ date: "2026-01-01" }),
+      record({ source: "sec_edgar", record_type: "filing", title: "Form 4 filed 2026-07-01",
+        date: "2026-07-01", extra: { form: "4" } }),
+      record({ source: "sec_edgar", record_type: "filing", title: "10-K filed 2025-11-01",
+        date: "2025-11-01", extra: { form: "10-K" } }),
     ];
-    const context = buildContext(set("OldCo", records));
-    expect(context.firstYear).toBe(1998);
-    expect(context.lastYear).toBe(2026);
-    const lede = generateLede(set("OldCo", records));
-    expect(lede).toContain("spanning 1998 to 2026");
+    const lede = generateLede(set("Filer Co", records));
+    // The 10-K is older but substantive; the Form 4 is newer but routine.
+    expect(lede).toContain("annual report");
+    expect(lede).not.toContain("Form 4");
   });
 
-  it("still summarizes when no records are recent", () => {
-    // Recency drives the "what's new" module, not the lede, but the generator
-    // must remain robust when every record is old.
+  it("falls back to the most recent record of any kind when nothing is substantive", () => {
     const records = [
-      record({ date: "2001-01-01" }),
-      record({ date: "2002-01-01" }),
-      record({ date: "2003-01-01" }),
+      record({ source: "sec_edgar", record_type: "filing", title: "x", date: "2026-01-01",
+        extra: { form: "4" } }),
+      record({ source: "sec_edgar", record_type: "filing", title: "y", date: "2020-01-01",
+        extra: { form: "3" } }),
     ];
-    const lede = generateLede(set("Vintage Co", records));
-    expect(lede).toContain("3 verified records");
+    const lede = generateLede(set("Ownership Co", records));
+    // Neither form is substantive, so the newest one is still named, not
+    // silently dropped into an empty lede.
+    expect(lede.length).toBeGreaterThan(0);
+    expect(lede).toMatch(/2026/);
+  });
+
+  it("truncates a very long title at a word boundary", () => {
+    const longTitle =
+      "Adaptive Model Compression for Ultra Low Power Transformer Inference on Embedded Devices in Constrained Manufacturing Environments With Real Time Telemetry";
+    const records = [
+      record({ record_type: "paper", title: longTitle, date: "2026-01-01" }),
+    ];
+    const lede = generateLede(set("Long Co", records));
+    expect(lede.length).toBeLessThan(longTitle.length + 60);
+    expect(lede).toContain("…");
   });
 
   it("is deterministic across repeated calls", () => {
     const records = [
-      record({ source: "sec_edgar", record_type: "filing", date: "2024-01-01" }),
+      record({ source: "sec_edgar", record_type: "filing", date: "2024-01-01", extra: { form: "8-K" } }),
       record({ source: "openalex", record_type: "paper", date: "2025-01-01" }),
-      record({ source: "nih_reporter", record_type: "grant", date: "2026-01-01" }),
     ];
     const s = set("Repeat Co", records);
     expect(generateLede(s)).toBe(generateLede(s));

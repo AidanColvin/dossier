@@ -1,12 +1,11 @@
 // Refreshes the cached homepage ledes in lib/startHere.data.ts from the live
 // backend. Run on a nightly cron or before a release so the homepage stays
-// current without fetching six companies on every load.
+// current without fetching companies on every load.
 //
 // Usage: node scripts/refreshStartHere.mjs
 //
-// This mirrors the lede logic in lib/summary/generateLede.ts. Keep the two in
-// step: this script is plain ESM so it can run in CI without a TypeScript
-// build step.
+// This mirrors lib/summary/pickHeadline.ts. Keep the two in step: this script
+// is plain ESM so it can run in CI without a TypeScript build step.
 
 import { writeFileSync } from "node:fs";
 
@@ -15,11 +14,8 @@ const BACKEND =
 
 const COMPANIES = [
   { ticker: "AAPL", label: "Apple" },
-  { ticker: "NVDA", label: "NVIDIA" },
-  { ticker: "MSFT", label: "Microsoft" },
-  { ticker: "PFE", label: "Pfizer" },
-  { ticker: "TSLA", label: "Tesla" },
   { ticker: "MRNA", label: "Moderna" },
+  { ticker: "NVDA", label: "NVIDIA" },
 ];
 
 const SUFFIX = { CORP: "Corp", INC: "Inc", CO: "Co", HOLDINGS: "Holdings" };
@@ -41,55 +37,85 @@ function prettyName(name) {
     .join(" ");
 }
 
-const SOURCE_LABELS = {
-  sec_edgar: "SEC EDGAR",
-  openalex: "OpenAlex",
-  clinicaltrials: "ClinicalTrials.gov",
-  nih_reporter: "NIH RePORTER",
-};
-const SOURCE_NOUNS = {
-  sec_edgar: "filing",
-  openalex: "research paper",
-  clinicaltrials: "trial",
-  nih_reporter: "grant",
-};
-const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 
-/** Takes a count and noun. Returns the contribution phrase. */
-function contribution(source, count) {
-  const noun = SOURCE_NOUNS[source] ?? "record";
-  return `${count} ${count === 1 ? noun : noun + "s"}`;
+const SUBSTANTIVE_FORMS = new Set([
+  "10-K", "10-Q", "8-K", "DEF 14A", "S-1", "S-3", "S-4", "6-K", "20-F", "424B4",
+]);
+const FORM_LABEL = {
+  "10-K": "annual report",
+  "10-Q": "quarterly report",
+  "8-K": "current report",
+  "DEF 14A": "proxy statement",
+  "S-1": "registration statement",
+  "S-3": "registration statement",
+  "S-4": "merger registration",
+  "6-K": "foreign issuer report",
+  "20-F": "annual report",
+};
+
+/** Takes an ISO date. Returns "Month Year", the bare year, or "". */
+function humanDate(iso) {
+  const year = Number(String(iso).slice(0, 4));
+  if (!Number.isFinite(year) || year < 1900) return "";
+  const month = Number(String(iso).slice(5, 7));
+  if (!month || month < 1 || month > 12) return String(year);
+  return `${MONTHS[month - 1]} ${year}`;
 }
 
-/** Takes a record set. Returns the two to three sentence lede. */
+/** Takes a title and a max length. Returns it truncated at a word boundary. */
+function truncateTitle(title, max = 100) {
+  if (title.length <= max) return title;
+  const cut = title.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${cut.slice(0, lastSpace > 40 ? lastSpace : max)}…`;
+}
+
+/** Takes a record. Returns whether it counts as real activity. */
+function isSubstantive(record) {
+  if (record.record_type !== "filing") return true;
+  const form = typeof record.extra?.form === "string" ? record.extra.form.toUpperCase() : "";
+  return SUBSTANTIVE_FORMS.has(form);
+}
+
+/** Takes one record. Returns the plain-language sentence naming it. */
+function phrase(record) {
+  const title = truncateTitle(record.title);
+  const when = humanDate(record.date);
+  switch (record.record_type) {
+    case "trial":
+      return `Its most recent clinical trial is ${title}${when ? `, begun ${when}` : ""}.`;
+    case "grant":
+      return `Its most recent NIH grant funds ${title}${when ? ` (${when})` : ""}.`;
+    case "paper":
+      return `Its researchers most recently published on ${title}${when ? `, in ${when}` : ""}.`;
+    case "filing":
+    default: {
+      const form = typeof record.extra?.form === "string" ? record.extra.form : "";
+      const label = FORM_LABEL[form.toUpperCase()] ?? (form ? `${form} filing` : "filing");
+      const named = form ? `a ${label} (${form})` : "a filing";
+      return `Its most recent major filing is ${named}${when ? `, ${when}` : ""}.`;
+    }
+  }
+}
+
+/** Takes an entity and its records. Returns the one or two sentence lede. */
 function generateLede(entity, records) {
-  const bySource = new Map();
-  const years = [];
-  for (const r of records) {
-    bySource.set(r.source, (bySource.get(r.source) ?? 0) + 1);
-    const y = Number(String(r.date).slice(0, 4));
-    if (Number.isFinite(y) && y > 1900) years.push(y);
-  }
-  const sources = [...bySource.entries()]
-    .map(([source, count]) => ({ source, count }))
-    .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source));
-  const first = years.length ? Math.min(...years) : null;
-  const last = years.length ? Math.max(...years) : null;
+  if (records.length === 0) return `${entity} has no public records across the four sources searched.`;
+  if (records.length === 1) return `${entity}'s only public record is ${truncateTitle(records[0].title)}.`;
 
-  const sourceWord = sources.length < WORDS.length ? WORDS[sources.length] : String(sources.length);
-  const span = first && last ? (first === last ? ` in ${first}` : `, spanning ${first} to ${last}`) : "";
-  const s1 = `${entity} has ${records.length} verified records across ${sourceWord} sources${span}.`;
+  const byDateDesc = (a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0);
+  const substantive = records.filter(isSubstantive).sort(byDateDesc);
+  const pool = substantive.length > 0 ? substantive : [...records].sort(byDateDesc);
 
-  let s2 = "";
-  if (sources.length >= 2) {
-    s2 = ` The company is most active on ${SOURCE_LABELS[sources[0].source]} with ${contribution(
-      sources[0].source,
-      sources[0].count
-    )}, followed by ${contribution(sources[1].source, sources[1].count)} from ${
-      SOURCE_LABELS[sources[1].source]
-    }.`;
-  }
-  return s1 + s2;
+  const primary = pool[0];
+  const secondary = pool.slice(1).find((r) => r.record_type !== primary.record_type);
+  const sentences = [phrase(primary)];
+  if (secondary) sentences.push(phrase(secondary));
+  return sentences.join(" ");
 }
 
 /** Fetches every company and writes the cached data module. */
@@ -99,7 +125,7 @@ async function main() {
     const res = await fetch(`${BACKEND}/run`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entity: c.ticker, ticker: c.ticker, max_results: 10 }),
+      body: JSON.stringify({ entity: c.ticker, ticker: c.ticker, max_results: 25 }),
     });
     const data = await res.json();
     const name = prettyName(data.profile?.name || c.label);
@@ -114,8 +140,8 @@ async function main() {
   const body = `// Cached lede sentences for the homepage "start here" grid.
 //
 // Generated by scripts/refreshStartHere.mjs from the live backend so the
-// homepage never fetches six companies on load. Regenerate on a nightly cron
-// or before a release. Do not edit by hand.
+// homepage never fetches companies on load. Regenerate on a nightly cron or
+// before a release. Do not edit by hand.
 
 import type { StartHereCard } from "./startHere.types";
 
