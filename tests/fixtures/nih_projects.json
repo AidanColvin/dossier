@@ -6,7 +6,7 @@
       "project_title": "Neuroscience imaging platform",
       "fiscal_year": 2023,
       "project_start_date": "2023-01-01",
-      "organization": {"org_name": "UNIVERSITY OF EXAMPLE"}
+      "organization": {"org_name": "NVIDIA CORPORATION"}
     },
     {
       "appl_id": "10500002",
@@ -14,7 +14,15 @@
       "project_title": "Cancer biomarker discovery",
       "fiscal_year": 2022,
       "project_start_date": "2022-04-01",
-      "organization": {"org_name": "EXAMPLE RESEARCH INSTITUTE"}
+      "organization": {"org_name": "NVIDIA RESEARCH INSTITUTE"}
+    },
+    {
+      "appl_id": "10500003",
+      "project_num": "1R21CA000003-01",
+      "project_title": "Unrelated lookalike organization",
+      "fiscal_year": 2024,
+      "project_start_date": "2024-02-01",
+      "organization": {"org_name": "NVIDIAMED SOLUTIONS"}
     },
     {
       "appl_id": "",
