@@ -72,6 +72,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const isHome = pathname === "/";
   const [infoOpen, setInfoOpen] = useState(false);
 
+  // Cmd-K (or Ctrl-K) focuses the search from anywhere: the header search on
+  // interior pages, the hero search on the homepage.
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        const field = document.querySelector<HTMLInputElement>(
+          "[data-header-search], [data-hero-search]"
+        );
+        field?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <>
       <header className="shell-header shell-header--slim">

@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import { PersistentSearch } from "@/components/shared/PersistentSearch";
+import { RecentlyViewed } from "@/components/shared/RecentlyViewed";
 import { START_HERE } from "@/lib/startHere.data";
 
 export default function HomePage() {
@@ -22,11 +23,13 @@ export default function HomePage() {
           <PersistentSearch variant="hero" autoFocus />
         </section>
 
+        <RecentlyViewed />
+
         <section className="section-band">
           <div className="canvas__eyebrow" style={{ marginBottom: 20 }}>
             Start here
           </div>
-          <div className="start-grid">
+          <div className="start-grid start-grid--three">
             {START_HERE.map((card) => (
               <Link
                 key={card.ticker}
@@ -41,6 +44,16 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+          <p
+            style={{
+              marginTop: 20,
+              fontSize: 13,
+              color: "var(--muted)",
+              textAlign: "center",
+            }}
+          >
+            Search any other public company above.
+          </p>
         </section>
       </div>
     </main>
