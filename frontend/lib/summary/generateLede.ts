@@ -4,13 +4,8 @@
 
 import type { PipelineRecord } from "@/lib/types";
 import type { LedeContext, RecordSet, SourceCount, YearCount } from "./types";
-import {
-  contribution,
-  plural,
-  sourceLabel,
-  spell,
-  typeLabel,
-} from "./templates";
+import { pickInterestingFact } from "./pickInterestingFact";
+import { plural, sourceLabel, spell, typeLabel } from "./templates";
 
 /** Takes a record. Returns its four digit year, or null when undated. */
 function yearOf(record: PipelineRecord): number | null {
@@ -127,41 +122,11 @@ function scaleSentence(context: LedeContext): string {
   return `${entity} has ${verifiedClause} ${sourceClause}${spanClause}.`;
 }
 
-/** Takes a context. Returns the sentence about which sources dominate. */
-function sourceSentence(context: LedeContext): string {
-  const { sources } = context;
-  if (sources.length < 2) return "";
-
-  const [first, second] = sources;
-  const lead = `The company is most active on ${sourceLabel(
-    first.source
-  )} with ${contribution(first.source, first.count)}`;
-
-  return `${lead}, followed by ${contribution(
-    second.source,
-    second.count
-  )} from ${sourceLabel(second.source)}.`;
-}
-
-/** Takes a context. Returns the sentence about the busiest year. */
-function busiestSentence(context: LedeContext): string {
-  const { busiestYear, busiestYearLeadType, total, firstYear, lastYear } = context;
-  if (!busiestYear || total < 3) return "";
-  // When every record falls in one year the busiest-year sentence just repeats
-  // the span already stated, so it is dropped.
-  if (firstYear !== null && firstYear === lastYear) return "";
-
-  const items = `${busiestYear.count} ${plural(busiestYear.count, "item")}`;
-  const descriptor = busiestYearLeadType
-    ? `, led by ${plural(2, typeLabel(busiestYearLeadType))}`
-    : "";
-
-  return `${busiestYear.year} is the busiest year on record with ${items}${descriptor}.`;
-}
-
 /**
- * Takes a record set. Returns the generated lede paragraph, two to four
- * sentences long. Handles the empty, single record, and single source cases.
+ * Takes a record set. Returns the lede: two sentences at most. The first
+ * states scale and span, the second is the one distinctive fact chosen by
+ * pickInterestingFact, so no two companies close on the same clause. Handles
+ * the empty and single record cases.
  */
 export function generateLede(set: RecordSet): string {
   const context = buildContext(set);
@@ -177,11 +142,6 @@ export function generateLede(set: RecordSet): string {
     )} from ${sourceLabel(only.source)}${year ? ` dated ${year}` : ""}.`;
   }
 
-  const sentences = [
-    scaleSentence(context),
-    sourceSentence(context),
-    busiestSentence(context),
-  ].filter(Boolean);
-
-  return sentences.join(" ");
+  const fact = pickInterestingFact({ entity: set.entity, records: set.records });
+  return [scaleSentence(context), fact].filter(Boolean).join(" ");
 }

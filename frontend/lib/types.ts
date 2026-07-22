@@ -1,5 +1,17 @@
 // shared types mirroring the api response shapes.
 
+/** How a record was tied to the entity. Additive, per-source. */
+export interface Verification {
+  method:
+    | "cik_match"
+    | "sponsor_match"
+    | "awardee_match"
+    | "author_affiliation"
+    | string;
+  matched_on: string;
+  strict: boolean;
+}
+
 export interface PipelineRecord {
   source: string;
   record_type: string;
@@ -10,6 +22,7 @@ export interface PipelineRecord {
   entity: string;
   sources: string[];
   verified: boolean;
+  verification?: Verification;
   extra: Record<string, unknown>;
 }
 
@@ -71,7 +84,7 @@ export interface RunRequest {
   min_sources?: number;
 }
 
-/** How a result was obtained — drives the "demo vs live" messaging. */
+/** How a result was obtained - drives the "demo vs live" messaging. */
 export type RunMode = "demo" | "live";
 
 /** A completed run plus the metadata the UI needs to describe it. */

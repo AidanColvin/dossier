@@ -68,9 +68,11 @@ describe("generateLede", () => {
     const lede = generateLede(set("Microsoft Corp", records));
     expect(lede).toContain("18 verified records");
     expect(lede).toContain("across two sources");
-    expect(lede).toContain("most active on ClinicalTrials.gov with 10 trials");
-    expect(lede).toContain("followed by 8 research papers from OpenAlex");
-    expect(lede).toContain("2026 is the busiest year");
+    // The second sentence is the distinctive fact, not a fixed template.
+    // Clinical trials are 10 of 18 (56%), a dominant source.
+    expect(lede).toContain("clinical trials");
+    // Two sentences at most.
+    expect(lede.split(". ").length).toBeLessThanOrEqual(2);
   });
 
   it("collapses the span when all records fall in one year", () => {
