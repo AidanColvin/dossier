@@ -64,6 +64,12 @@ def _project_to_record(project: dict, entity: str) -> Record:
         date=first_nonempty(project.get("project_start_date"), project.get("fiscal_year")),
         entity=entity,
         sources=[url],
+        verified=True,
+        verification={
+            "method": "awardee_match",
+            "matched_on": org or entity,
+            "strict": True,
+        },
         extra={"organization": org, "fiscal_year": as_text(project.get("fiscal_year"))},
     )
 

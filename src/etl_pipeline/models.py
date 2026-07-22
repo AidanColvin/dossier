@@ -35,6 +35,9 @@ class Record:
     entity: str                                      # query entity this row belongs to
     sources: list[str] = field(default_factory=list)   # provenance urls
     verified: bool = False
+    # how this record was tied to the entity: {method, matched_on, strict}.
+    # additive and per-source; see each connector for the method it reports.
+    verification: dict[str, Any] = field(default_factory=dict)
     extra: dict[str, Any] = field(default_factory=dict)
 
 

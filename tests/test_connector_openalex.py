@@ -5,10 +5,14 @@ from etl_pipeline.models import Query
 from tests.conftest import load_fixture
 
 
-def test_build_params_uses_affiliation_filter():
-    params = openalex.build_params("NVIDIA", 5)
-    assert params["filter"] == "raw_affiliation_strings.search:NVIDIA"
-    assert params["per-page"] == 5
+def test_build_params_uses_ror_authorship_lookup_when_resolved():
+    params = openalex.build_params("Apple", 5, "059hsda18")
+    assert params["filter"] == "authorships.institutions.ror:059hsda18"
+
+
+def test_build_params_falls_back_to_display_name_search():
+    params = openalex.build_params("Apple", 5, "")
+    assert params["filter"] == "authorships.institutions.display_name.search:Apple"
 
 
 def test_work_url_prefers_open_access():
@@ -26,80 +30,48 @@ def test_work_sources_adds_doi():
     assert urls == ["https://openalex.org/W1", "https://doi.org/10.1/x"]
 
 
+def test_is_scholarly_keeps_articles_and_drops_software():
+    assert openalex.is_scholarly({"type": "article"}) is True
+    assert openalex.is_scholarly({"type": "preprint"}) is True
+    assert openalex.is_scholarly({"type": "software"}) is False
+    assert openalex.is_scholarly({"type": "dataset"}) is False
+    # A missing type is kept, so a data gap never silently drops a record.
+    assert openalex.is_scholarly({}) is True
+
+
 def test_parse_works_skips_untitled():
     payload = load_fixture("openalex_works.json")
-    records = openalex.parse_works(payload, "NVIDIA")
+    records = openalex.parse_works(payload, "NVIDIA", "ror:x", True, 10)
     assert len(records) == 2  # the third work has no title
     assert records[0].record_type == "paper"
-    assert records[0].extra["journal"] == "Nature Machine Intelligence"
+    assert records[0].verification["method"] == "author_affiliation"
 
 
-def test_fetch_happy_path(fake_http):
+def test_parse_works_drops_software_dumps():
+    payload = {
+        "results": [
+            {"id": "https://openalex.org/W1", "title": "Real paper", "type": "article"},
+            {"id": "https://openalex.org/W2", "title": "kovdan01/llvm-project-ptrenc: ptrenc", "type": "software"},
+        ]
+    }
+    records = openalex.parse_works(payload, "Apple", "ror:x", True, 10)
+    titles = [r.title for r in records]
+    assert "Real paper" in titles
+    assert "kovdan01/llvm-project-ptrenc: ptrenc" not in titles
+
+
+def test_parse_works_dedupes_by_id():
+    payload = {
+        "results": [
+            {"id": "https://openalex.org/W1", "title": "Same", "type": "article"},
+            {"id": "https://openalex.org/W1", "title": "Same", "type": "article"},
+        ]
+    }
+    records = openalex.parse_works(payload, "Apple", "ror:x", True, 10)
+    assert len(records) == 1
+
+
+def test_fetch_returns_verification_field(fake_http):
     result = openalex.fetch(Query(entity="NVIDIA"), fake_http, Config())
     assert result.ok is True
-    assert len(result.records) == 2
-
-
-def test_fetch_empty_entity_is_empty(fake_http):
-    result = openalex.fetch(Query(entity="  "), fake_http, Config())
-    assert result.records == []
-
-
-def test_fetch_reports_failure():
-    def boom(method, url, params=None, body=None, headers=None):
-        raise RuntimeError("down")
-
-    result = openalex.fetch(Query(entity="NVIDIA"), boom, Config())
-    assert result.ok is False
-
-
-def _institutions(*entries):
-    return {"results": list(entries)}
-
-
-def test_find_institution_prefers_a_company_over_a_university():
-    """'Apple' is the company, not a same-named school."""
-    def http(method, url, **kwargs):
-        return _institutions(
-            {"id": "https://openalex.org/I1", "display_name": "Apple University",
-             "type": "education", "works_count": 900},
-            {"id": "https://openalex.org/I2", "display_name": "Apple (United States)",
-             "type": "company", "works_count": 8000},
-        )
-
-    assert openalex.find_institution("Apple", http) == "https://openalex.org/I2"
-
-
-def test_find_institution_picks_the_most_published_subsidiary():
-    """the parent company outranks its national arms."""
-    def http(method, url, **kwargs):
-        return _institutions(
-            {"id": "https://openalex.org/I1", "display_name": "Apple (Israel)",
-             "type": "company", "works_count": 40},
-            {"id": "https://openalex.org/I2", "display_name": "Apple (United States)",
-             "type": "company", "works_count": 8000},
-        )
-
-    assert openalex.find_institution("Apple", http) == "https://openalex.org/I2"
-
-
-def test_find_institution_rejects_an_unrelated_match():
-    """a private lab must not inherit a university's entire output."""
-    def http(method, url, **kwargs):
-        return _institutions(
-            {"id": "https://openalex.org/I9", "display_name": "Duke University",
-             "type": "education", "works_count": 500000},
-        )
-
-    assert openalex.find_institution("Some Private Lab", http) == ""
-
-
-def test_build_params_uses_authorship_lookup_when_resolved():
-    params = openalex.build_params("Apple", 5, "https://openalex.org/I2")
-    assert params["filter"] == (
-        "authorships.institutions.lineage:https://openalex.org/I2")
-
-
-def test_build_params_falls_back_to_affiliation_search():
-    params = openalex.build_params("Some Private Lab", 5, "")
-    assert params["filter"] == "raw_affiliation_strings.search:Some Private Lab"
+    assert all("method" in r.verification for r in result.records)

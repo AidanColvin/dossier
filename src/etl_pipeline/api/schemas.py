@@ -26,6 +26,7 @@ class RecordModel(BaseModel):
     entity: str
     sources: list[str]
     verified: bool
+    verification: dict[str, Any] = {}
     extra: dict[str, Any]
 
 

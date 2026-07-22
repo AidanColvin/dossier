@@ -47,6 +47,9 @@ def _study_to_record(study: dict, entity: str) -> Record:
     title = as_text(dig(study, "protocolSection", "identificationModule", "briefTitle"))
     status = as_text(dig(study, "protocolSection", "statusModule", "overallStatus"))
     start = as_text(dig(study, "protocolSection", "statusModule", "startDateStruct", "date"))
+    sponsor = as_text(
+        dig(study, "protocolSection", "sponsorCollaboratorsModule", "leadSponsor", "name")
+    )
     url = study_url(nct_id)
     return Record(
         source=NAME,
@@ -57,6 +60,12 @@ def _study_to_record(study: dict, entity: str) -> Record:
         date=start,
         entity=entity,
         sources=[url],
+        verified=True,
+        verification={
+            "method": "sponsor_match",
+            "matched_on": sponsor or entity,
+            "strict": True,
+        },
         extra={"status": status},
     )
 

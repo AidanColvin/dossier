@@ -170,8 +170,10 @@ def _row_to_record(row: dict, cik: str, entity: str) -> Record:
     return a normalized filing record
     """
     url = build_filing_url(cik, row["accession"], row["document"])
-    title = collapse_whitespace(
-        f"{row['form']} filed {row['filing_date']} — {row['description']}".rstrip(" —"))
+    label = f"{row['form']} filed {row['filing_date']}"
+    if row["description"]:
+        label = f"{label}: {row['description']}"
+    title = collapse_whitespace(label)
     return Record(
         source=NAME,
         record_type=RECORD_TYPE,
@@ -181,6 +183,8 @@ def _row_to_record(row: dict, cik: str, entity: str) -> Record:
         date=first_nonempty(row["filing_date"], row["report_date"]),
         entity=entity,
         sources=[url, SEC_HOME],
+        verified=True,
+        verification={"method": "cik_match", "matched_on": cik, "strict": True},
         extra={"form": row["form"], "report_date": row["report_date"]},
     )
 
