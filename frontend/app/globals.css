@@ -333,6 +333,439 @@ a:hover {
 }
 
 /* ---------------------------------------------------------------------------
+   Company page — header, lede, what's new, timeline, filter chip, footer
+   ------------------------------------------------------------------------- */
+
+.company-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.company-head__id {
+  flex: 1;
+  min-width: 0;
+}
+
+.company-head__id h1 {
+  display: inline;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  margin: 0 10px 0 0;
+}
+
+.company-head__meta {
+  margin-top: 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.company-head__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* The lede: the most important element. Fades in softly on load. */
+.lede {
+  font-size: 18px;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+  color: var(--ink);
+  margin: 22px 0 0;
+  max-width: 68ch;
+  animation: lede-in 150ms var(--ease) both;
+}
+
+@keyframes lede-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.whats-new {
+  margin-top: 34px;
+}
+
+.whats-new__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.whats-new__card {
+  display: block;
+  color: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 15px 16px;
+  background: var(--panel);
+  transition: border-color 0.18s var(--ease), transform 0.18s var(--spring);
+}
+
+.whats-new__card:hover {
+  text-decoration: none;
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
+}
+
+.whats-new__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.whats-new__type {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.whats-new__title {
+  font-size: 14px;
+  font-weight: 550;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.whats-new__date {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pills: source identity is a neutral text label, verified is the one accent. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.pill--source {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--muted);
+}
+
+.pill--verified {
+  background: rgba(52, 199, 89, 0.13);
+  color: #1c7a35;
+}
+
+/* The interactive year timeline. Reads as a native strip, not a chart. */
+.timeline__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.timeline__col {
+  flex: 1;
+  min-width: 34px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--r-sm);
+  transition: background 0.15s var(--ease);
+}
+
+.timeline__col:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.timeline__col:disabled {
+  cursor: default;
+}
+
+.timeline__count {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  height: 14px;
+}
+
+.timeline__bar {
+  width: 60%;
+  min-height: 2px;
+  border-radius: 4px 4px 2px 2px;
+  background: var(--line-strong);
+  transition: background 0.15s var(--ease), height 0.4s var(--spring);
+}
+
+.timeline__col:hover:not(:disabled) .timeline__bar {
+  background: var(--ghost);
+}
+
+.timeline__col[data-active="true"] .timeline__bar {
+  background: var(--ink);
+}
+
+.timeline__year {
+  font-size: 11px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline__col[data-active="true"] .timeline__year {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 14px;
+  padding: 5px 6px 5px 13px;
+  border-radius: var(--r-pill);
+  background: var(--accent-tint);
+  color: var(--accent-press);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.filter-chip button {
+  border: none;
+  background: var(--panel);
+  color: var(--accent-press);
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+
+.record-controls {
+  margin-bottom: 16px;
+}
+
+/* A slightly roomier record row, per the density pass. */
+.record--roomy {
+  padding: 17px 18px;
+  line-height: 1.55;
+}
+
+.show-all {
+  margin-top: 14px;
+}
+
+.company-foot {
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--faint);
+  line-height: 1.6;
+}
+
+.linklike {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.linklike:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+   Slide-over panels — compare, export, how it works
+   ------------------------------------------------------------------------- */
+
+.slideover {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.slideover__scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  animation: lede-in 150ms var(--ease) both;
+}
+
+.slideover__panel {
+  position: relative;
+  width: min(560px, 92vw);
+  background: var(--panel);
+  box-shadow: var(--shadow-3);
+  padding: 28px 30px 40px;
+  overflow-y: auto;
+  animation: slide-in 220ms var(--spring) both;
+}
+
+.slideover__panel--narrow {
+  width: min(420px, 92vw);
+}
+
+.slideover__panel--wide {
+  width: min(880px, 96vw);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slideover__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.slideover__head h2 {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.slideover__lede {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 26px;
+  max-width: 60ch;
+}
+
+.slideover__stages {
+  margin: 0 0 26px;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.slideover__sources {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.slideover__source {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.slideover__source strong {
+  min-width: 150px;
+}
+
+.slideover__source span {
+  color: var(--muted);
+  flex: 1;
+}
+
+.export-options {
+  display: grid;
+  gap: 10px;
+}
+
+.export-option {
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  padding: 15px 17px;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+
+.export-option:hover {
+  border-color: var(--accent);
+  background: var(--panel-2);
+}
+
+.export-option strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.export-option span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.compare-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+@media (max-width: 640px) {
+  .compare-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compare-col__head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+
+.compare-col__head strong {
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.compare-col__lede {
+  margin: 16px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ---------------------------------------------------------------------------
    Company fact banner and metric tiles
    ------------------------------------------------------------------------- */
 
