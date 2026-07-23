@@ -1,4 +1,6 @@
-"""tests for the sqlite project store and its endpoints, offline."""
+"""tests for the json project store and its endpoints, offline."""
+from concurrent.futures import ThreadPoolExecutor
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -13,8 +15,8 @@ from etl_pipeline.store.projects import (
 
 @pytest.fixture
 def db_path(tmp_path):
-    """a throwaway database file per test."""
-    return tmp_path / "projects.sqlite"
+    """a throwaway store file per test."""
+    return tmp_path / "projects.json"
 
 
 def test_save_and_get_round_trip(db_path):
@@ -49,6 +51,22 @@ def test_delete_reports_whether_anything_was_deleted(db_path):
     assert delete_project(entry["id"], path=db_path) is True
     assert delete_project(entry["id"], path=db_path) is False
     assert get_project(entry["id"], path=db_path) is None
+
+
+def test_concurrent_saves_never_corrupt_or_drop_a_write(db_path):
+    # 20 threads writing the same json file at once is exactly the race a
+    # file lock exists to prevent: without one, two writers reading-then-
+    # overwriting the same stale snapshot silently drop each other's save.
+    def save(index):
+        return save_project(f"p{index}", "company", f"co-{index}", {"i": index},
+                            path=db_path)
+
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        list(pool.map(save, range(20)))
+
+    projects = list_projects(path=db_path)
+    assert len(projects) == 20
+    assert {p["name"] for p in projects} == {f"p{i}" for i in range(20)}
 
 
 @pytest.fixture

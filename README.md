@@ -57,7 +57,7 @@ And that single-company pipeline is only the first engine. The workspace nav exp
 | **Partnership Intelligence** | `/partnerships` | Name a company and any research institution ("NVDA" + "UNC"). Four concurrent lookups find co-authored papers (a real OpenAlex affiliation intersection, not a text search), trials naming the institution, funded projects whose text names the company, and the company's own filings mentioning the institution. Rule-based detection ranks confirmed signals over probable ones. |
 | **Talking Points** | (in the partnership view) | Deterministic template assembly over the evidence: confirmed relationships first, then funded researchers to contact, joint trials, and co-authorship openings. At most eight points, never empty, no model anywhere. |
 | **Directory** | `/directory` | Every SEC-listed company from the SEC's own exchange-annotated file: server-side search, exchange filter, sort, paging, and CSV export. Any row opens as a full dossier. |
-| **Projects** | `/projects` | Save any finished run under a name; reopening renders it from the saved payload with no re-fetch. localStorage in the browser, plus a SQLite-backed `/projects` API server-side. |
+| **Projects** | `/projects` | Save any finished run under a name; reopening renders it from the saved payload with no re-fetch. localStorage in the browser, plus a JSON-file-backed `/projects` API server-side. |
 
 ```mermaid
 flowchart LR
@@ -143,7 +143,7 @@ flowchart LR
     SE["Sectors<br/>live streamed scan · progress per company<br/>verification stats · references<br/>markdown download · shareable url"]
     PA["Partnerships<br/>evidence in four tiers · ranked signals<br/>talking points with copy-all<br/>markdown download · shareable url"]
     DI["Directory<br/>search · exchange filter · sort<br/>paging · csv export"]
-    PR["Projects<br/>save any run · reopen with no re-fetch<br/>delete · localStorage + sqlite api"]
+    PR["Projects<br/>save any run · reopen with no re-fetch<br/>delete · localStorage + json-file api"]
 
     HOME -->|"search"| CO
     SE -->|"click a ticker"| CO
@@ -427,7 +427,7 @@ src/etl_pipeline/
   sector/               seeds · discover · membership · orchestrator · report
   partnerships/         institutions · resolver · signals · talking_points
   directory/            companies (fetch · query · csv export)
-  store/                projects (sqlite save / list / fetch / delete)
+  store/                projects (json-file save / list / fetch / delete)
   api/                  app · schemas · service · guard (FastAPI)
 
 frontend/

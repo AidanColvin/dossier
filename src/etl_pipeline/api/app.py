@@ -60,10 +60,10 @@ def get_fetcher() -> Optional[Fetcher]:
 def get_db_path() -> FilePath:
     """
     takes nothing
-    return the projects database path, env-overridable; tests override this
+    return the projects store path, env-overridable; tests override this
     """
     return FilePath(os.environ.get("DOSSIER_DB_PATH",
-                                   str(project_store.DEFAULT_DB_PATH)))
+                                   str(project_store.DEFAULT_STORE_PATH)))
 
 
 def create_app() -> FastAPI:
