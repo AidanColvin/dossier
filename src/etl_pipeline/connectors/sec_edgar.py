@@ -107,18 +107,43 @@ def normalize_company(name: str) -> str:
     return " ".join(words)
 
 
+# household brand names whose sec registrant is titled something else
+# entirely. title matching can never bridge "google" to "Alphabet Inc.", so
+# the biggest such gaps are closed by hand: normalized brand -> ticker. the
+# ticker, not a cik, is stored so the mapping survives sec re-registrations.
+_BRAND_TICKERS = {
+    "google": "GOOGL",
+    "youtube": "GOOGL",
+    "waymo": "GOOGL",
+    "deepmind": "GOOGL",
+    "facebook": "META",
+    "instagram": "META",
+    "whatsapp": "META",
+    "disney": "DIS",
+    "eli lilly": "LLY",
+    "chase": "JPM",
+    "coke": "KO",
+}
+
+
 def find_cik_for_name(tickers: dict, name: str) -> str:
     """
     given the company_tickers payload and a company name
     return the padded cik of the best title match, or '' when none match
 
-    prefers an exact normalized match; falls back to a title that starts with
-    the requested name, which catches 'Alphabet' -> 'Alphabet Inc.' without
+    a curated brand alias is honored first, so 'google' reaches Alphabet.
+    then an exact normalized title match; then a title that starts with the
+    requested name, which catches 'Alphabet' -> 'Alphabet Inc.' without
     matching every company that merely contains the word
     """
     wanted = normalize_company(name)
     if not wanted:
         return ""
+    brand = _BRAND_TICKERS.get(wanted)
+    if brand:
+        cik = find_cik_for_ticker(tickers, brand)
+        if cik:
+            return cik
     prefix = ""
     for entry in (tickers or {}).values():
         title = normalize_company(as_text(entry.get("title")))

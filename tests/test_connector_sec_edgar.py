@@ -112,6 +112,21 @@ def test_find_cik_for_name_returns_blank_when_no_match():
     assert sec_edgar.find_cik_for_name(tickers, "Moderna") == ""
 
 
+def test_find_cik_for_name_resolves_household_brands():
+    """'google' reaches Alphabet even though no sec title contains it."""
+    tickers = {
+        "0": {"cik_str": 1652044, "ticker": "GOOGL", "title": "Alphabet Inc."},
+        "1": {"cik_str": 1326801, "ticker": "META", "title": "Meta Platforms, Inc."},
+        "2": {"cik_str": 1744489, "ticker": "DIS", "title": "Walt Disney Co"},
+    }
+    assert sec_edgar.find_cik_for_name(tickers, "google") == "0001652044"
+    assert sec_edgar.find_cik_for_name(tickers, "YouTube") == "0001652044"
+    assert sec_edgar.find_cik_for_name(tickers, "Facebook") == "0001326801"
+    assert sec_edgar.find_cik_for_name(tickers, "Disney") == "0001744489"
+    # a brand whose ticker is absent from the payload falls through cleanly.
+    assert sec_edgar.find_cik_for_name({"0": tickers["0"]}, "Facebook") == ""
+
+
 def test_fetch_resolves_by_entity_name_without_a_ticker():
     """a search with no ticker still returns filings, matched by name."""
     calls = []
