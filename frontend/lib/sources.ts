@@ -15,7 +15,7 @@ export interface SourceMeta {
   home: string;
   /** the public api endpoint the connector talks to. */
   endpoint: string;
-  /** whether the upstream api needs a key — all four are keyless by design. */
+  /** whether the upstream api needs a key - all four are keyless by design. */
   keyless: boolean;
 }
 
@@ -26,7 +26,7 @@ export const SOURCES: SourceMeta[] = [
     colorVar: "--src-sec",
     yields: "filings",
     blurb:
-      "Company filings from the U.S. Securities and Exchange Commission — 10-K, 10-Q, 8-K and the rest, resolved from ticker to CIK.",
+      "Company filings from the U.S. Securities and Exchange Commission - 10-K, 10-Q, 8-K and the rest, resolved from ticker to CIK.",
     home: "https://www.sec.gov/edgar",
     endpoint: "data.sec.gov/submissions",
     keyless: true,

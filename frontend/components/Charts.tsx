@@ -1,7 +1,7 @@
 "use client";
 
 // hand-built SVG charts. no charting dependency, so nothing to ship, theme or
-// keep in sync — the charts read the same CSS variables as everything else.
+// keep in sync - the charts read the same CSS variables as everything else.
 
 export interface Series {
   label: string;
@@ -11,7 +11,7 @@ export interface Series {
 
 /**
  * given a number of dollars
- * return a short human form — $391.0B, $26.3M — because a financial tile that
+ * return a short human form - $391.0B, $26.3M - because a financial tile that
  * reads 391035000000 is not a fact anyone can use
  */
 export function money(value: number): string {
@@ -151,6 +151,50 @@ export function BarChart({
           <span key={point.x}>{point.x}</span>
         ))}
       </div>
+    </div>
+  );
+}
+
+export interface Leader {
+  name: string;
+  title: string;
+}
+
+/**
+ * given a company's ranked leadership (most senior first)
+ * render a root-and-reports org chart: the first leader as the root box,
+ * every other leader as a report beneath it. the connecting lines are
+ * plain CSS borders (a stem below the root, a rail above the reports),
+ * so the layout needs no coordinate math and reflows at any width like
+ * the rest of the app.
+ */
+export function OrgChart({ leaders }: { leaders: Leader[] }) {
+  if (leaders.length === 0) return null;
+  const [root, ...reports] = leaders;
+
+  return (
+    <div className="org-chart">
+      <div className="org-chart__node org-chart__node--root">
+        <strong>{root.name}</strong>
+        <span>{root.title}</span>
+      </div>
+      {reports.length > 0 && (
+        <>
+          <div className="org-chart__stem" aria-hidden />
+          <div className="org-chart__rail" aria-hidden />
+          <div className="org-chart__reports">
+            {reports.map((leader) => (
+              <div key={leader.name} className="org-chart__report">
+                <div className="org-chart__branch" aria-hidden />
+                <div className="org-chart__node">
+                  <strong>{leader.name}</strong>
+                  <span>{leader.title}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

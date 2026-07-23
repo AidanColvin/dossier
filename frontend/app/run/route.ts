@@ -1,4 +1,4 @@
-// POST /run — if a python backend is configured via PIPELINE_API_URL, proxy
+// POST /run - if a python backend is configured via PIPELINE_API_URL, proxy
 // the request to it for live data; otherwise fall back to the bundled demo so
 // the button still works on a standalone deployment.
 //

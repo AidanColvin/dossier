@@ -1,5 +1,5 @@
 // client-side export of a run to csv, json or markdown. everything is built
-// in the browser from the already-fetched response — no extra request, no
+// in the browser from the already-fetched response - no extra request, no
 // export dependency, and nothing leaves the page except via the user's own
 // download.
 import { sourceLabel, typeLabel } from "./format";
@@ -21,7 +21,7 @@ const CSV_COLUMNS = [
 
 /**
  * given one cell's raw text
- * return it quoted for csv — doubling embedded quotes, and always quoting so
+ * return it quoted for csv - doubling embedded quotes, and always quoting so
  * commas, newlines and leading zeros survive a trip through excel
  */
 function csvCell(value: unknown): string {
@@ -60,7 +60,7 @@ export function toCsv(records: PipelineRecord[]): string {
  */
 export function toMarkdown(response: RunResponse): string {
   const lines: string[] = [
-    `# ${response.entity} — Dossier`,
+    `# ${response.entity} - Dossier`,
     "",
     `${response.count} record${response.count === 1 ? "" : "s"} across ${
       response.sources.length
@@ -73,7 +73,7 @@ export function toMarkdown(response: RunResponse): string {
   ];
 
   for (const source of response.sources) {
-    const status = source.ok ? "ok" : `failed — ${source.error || "unknown"}`;
+    const status = source.ok ? "ok" : `failed - ${source.error || "unknown"}`;
     lines.push(`| ${sourceLabel(source.source)} | ${status} | ${source.count} |`);
   }
 
@@ -88,7 +88,7 @@ export function toMarkdown(response: RunResponse): string {
     lines.push("", `## ${typeLabel(type)}`, "");
     for (const record of records) {
       const date = record.date ? ` (${record.date})` : "";
-      const mark = record.verified ? "" : " — unverified";
+      const mark = record.verified ? "" : " - unverified";
       lines.push(`- [${record.title}](${record.url})${date}${mark}`);
     }
   }

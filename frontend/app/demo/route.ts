@@ -1,4 +1,4 @@
-// GET /demo?entity=... — the dossier shown on first load.
+// GET /demo?entity=... - the dossier shown on first load.
 //
 // When a pipeline backend is configured, this runs the *real* pipeline for the
 // entity, so a connected deployment lands on live data rather than greeting
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // A GET with no cache directive is fair game for the CDN, which will happily
-// keep serving a stale run — including one produced before the response even
+// keep serving a stale run - including one produced before the response even
 // carried a profile. Every answer here is per-entity and live, so none of it
 // is cacheable.
 const NO_STORE = "no-store, max-age=0, must-revalidate";

@@ -1,7 +1,7 @@
 // thin client for the pipeline api.
 //
 // by default the base url is empty, so calls hit this app's own /demo and /run
-// route handlers (same origin) — that is what makes a standalone deployment
+// route handlers (same origin) - that is what makes a standalone deployment
 // work with no separate backend. set NEXT_PUBLIC_API_URL to point the browser
 // directly at the python fastapi service instead.
 //
@@ -47,7 +47,7 @@ export async function runPipeline(
 /**
  * takes nothing
  * return the list of source keys the backend exposes, or null when the
- * endpoint is unavailable — callers fall back to the bundled source list
+ * endpoint is unavailable - callers fall back to the bundled source list
  *
  * only meaningful against a real backend: on a standalone deployment
  * `/sources` is this app's own Sources *page*, not a json endpoint, so the

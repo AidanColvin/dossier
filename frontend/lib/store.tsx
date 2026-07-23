@@ -3,7 +3,7 @@
 // the one place a run lives. mounted once in the root layout, so every route
 // reads the same dossier and navigating between Records, Sources and Analytics
 // never refetches or loses state. the active run is mirrored into
-// sessionStorage so a refresh — or a pasted deep link — lands on the same data.
+// sessionStorage so a refresh - or a pasted deep link - lands on the same data.
 
 import {
   createContext,
@@ -42,7 +42,7 @@ const RunContext = createContext<RunStore | null>(null);
 
 /**
  * given a storage key and a fallback
- * return the parsed session value, or the fallback when absent or corrupt —
+ * return the parsed session value, or the fallback when absent or corrupt -
  * a stale schema in storage must never take the app down
  */
 function readSession<T>(key: string, fallback: T): T {
@@ -71,7 +71,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Rehydration happens in an effect, one tick after mount. Until it has run,
-  // `run` is null for a reason that is NOT "no dossier loaded" — so the
+  // `run` is null for a reason that is NOT "no dossier loaded" - so the
   // ensure-run fallback must wait, or a full page load would overwrite the
   // restored dossier with the default entity.
   const [hydrated, setHydrated] = useState(false);
@@ -122,7 +122,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
       } catch (caught) {
         if (id === requestId.current) {
           setError(
-            `${(caught as Error).message}. The pipeline API did not respond — ` +
+            `${(caught as Error).message}. The pipeline API did not respond - ` +
               "check that the backend is running and reachable."
           );
         }

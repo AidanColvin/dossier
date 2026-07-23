@@ -2,11 +2,12 @@
 
 // the narrative sections of a company profile: the business in the
 // company's own 10-K words, its named risk categories, management's
-// discussion, and the leadership grid from form 4 filings. every section
-// hides itself when its data is absent, so a shallow run or a company
-// without a readable annual report renders nothing here rather than
-// empty boxes.
+// discussion, and the leadership org chart from form 4 filings. every
+// section hides itself when its data is absent, so a shallow run or a
+// company without a readable annual report renders nothing here rather
+// than empty boxes.
 
+import { OrgChart } from "@/components/Charts";
 import type { CompanyProfile } from "@/lib/types";
 
 export function CompanyNarrative({ profile }: { profile?: CompanyProfile | null }) {

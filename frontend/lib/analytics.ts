@@ -111,7 +111,7 @@ export function summarize(response: RunResponse | null): RunSummary {
 
 /**
  * given a record
- * return how many distinct provenance urls back it — the number the
+ * return how many distinct provenance urls back it - the number the
  * min_sources threshold is compared against
  */
 export function provenanceCount(record: PipelineRecord): number {

@@ -65,7 +65,7 @@ export function Stat({
 
 /**
  * given labelled buckets and a colour resolver
- * render a horizontal bar chart scaled to the largest bucket — pure CSS, so
+ * render a horizontal bar chart scaled to the largest bucket - pure CSS, so
  * there is no charting dependency to ship or theme
  */
 export function BarChart({

@@ -23,8 +23,12 @@ from etl_pipeline.sector.membership import (
 )
 
 SECTOR_WORKERS = 4
-TOTAL_BUDGET_SECONDS = 35.0
-SOURCE_TIMEOUT_SECONDS = 12.0
+# two waves of four (eight companies, four workers) at the per-company
+# deadline is 30s worst case; the extra margin covers report assembly and
+# verification, which run after this budget, comfortably inside Vercel's
+# 60s function ceiling.
+TOTAL_BUDGET_SECONDS = 40.0
+SOURCE_TIMEOUT_SECONDS = 15.0
 SECTOR_MAX_RESULTS = 5
 
 # an emitter receives (event kind, payload). the http layer turns these into
