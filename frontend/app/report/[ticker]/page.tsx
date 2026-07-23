@@ -10,7 +10,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
-import { LineChart, money, type Series } from "@/components/Charts";
+import { LineChart, OrgChart, type Series } from "@/components/Charts";
 import { Empty, SourceChip } from "@/components/ui";
 import { SaveToProject } from "@/components/shared/SaveToProject";
 import { download } from "@/lib/exports";
@@ -311,18 +311,7 @@ export default function ReportPage() {
                 title="Leadership"
                 note="Named officers from recent SEC Form 4 filings."
               >
-                <div className="grid grid--3">
-                  {model.leadership.map((leader) => (
-                    <div key={leader.name} className="stat">
-                      <div className="stat__value" style={{ fontSize: 16 }}>
-                        {leader.name}
-                      </div>
-                      <div className="stat__label" style={{ textTransform: "none" }}>
-                        {leader.title}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <OrgChart leaders={model.leadership} />
               </Section>
             )}
 

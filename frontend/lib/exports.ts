@@ -132,10 +132,15 @@ export function buildExport(
 }
 
 /**
- * given a file body, a filename and a mime type
+ * given a file body (text or raw bytes, for binary formats like xlsx), a
+ * filename and a mime type
  * trigger a browser download, then release the object url
  */
-export function download(body: string, filename: string, mime: string): void {
+export function download(
+  body: string | Uint8Array,
+  filename: string,
+  mime: string
+): void {
   const blob = new Blob([body], { type: mime });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");

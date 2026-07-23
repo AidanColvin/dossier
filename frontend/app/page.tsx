@@ -6,6 +6,7 @@
 // the canonical company page.
 
 import Link from "next/link";
+import { HomeOrbit } from "@/components/shared/HomeOrbit";
 import { PersistentSearch } from "@/components/shared/PersistentSearch";
 import { RecentlyViewed } from "@/components/shared/RecentlyViewed";
 import { START_HERE } from "@/lib/startHere.data";
@@ -21,6 +22,7 @@ export default function HomePage() {
             citations back to the source.
           </p>
           <PersistentSearch variant="hero" autoFocus />
+          <HomeOrbit />
         </section>
 
         <RecentlyViewed />

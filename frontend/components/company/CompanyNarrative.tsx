@@ -33,18 +33,7 @@ export function CompanyNarrative({ profile }: { profile?: CompanyProfile | null 
       {(profile.leadership?.length ?? 0) > 0 && (
         <section className="card">
           <h2 className="section-title">Leadership</h2>
-          <div className="grid grid--3" style={{ marginTop: 8 }}>
-            {profile.leadership!.map((leader) => (
-              <div key={leader.name} className="stat">
-                <div className="stat__value" style={{ fontSize: 16 }}>
-                  {leader.name}
-                </div>
-                <div className="stat__label" style={{ textTransform: "none" }}>
-                  {leader.title}
-                </div>
-              </div>
-            ))}
-          </div>
+          <OrgChart leaders={profile.leadership!} />
           <p className="count-line">
             Named officers from recent SEC Form 4 filings.
           </p>

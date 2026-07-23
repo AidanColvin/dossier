@@ -2138,3 +2138,35 @@ table.data tbody tr:hover {
   background: var(--line-strong);
   margin-top: -20px;
 }
+
+/* ---------------------------------------------------------------------------
+   Home orbit - a quiet animated node graph behind the hero search, echoing
+   the brand mark. Pure SVG + CSS rotation; prefers-reduced-motion (above)
+   already flattens the animation duration to near-zero.
+   ------------------------------------------------------------------------- */
+.home-orbit {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0 -8px;
+  opacity: 0.9;
+}
+
+.home-orbit__svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.home-orbit__ring {
+  animation-name: home-orbit-spin;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes home-orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -8,8 +8,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Empty, LoadingRows, PageHead } from "@/components/ui";
+import { download } from "@/lib/exports";
 import type { DirectoryCompany } from "@/lib/sampleDirectory";
 import type { RunMode } from "@/lib/types";
+import { buildXlsx } from "@/lib/xlsx";
 
 const PAGE_SIZE = 50;
 const SEARCH_DEBOUNCE_MS = 250;
@@ -27,6 +29,14 @@ const COLUMNS: Array<{ key: string; label: string }> = [
   { key: "cik", label: "CIK" },
 ];
 
+const EXPORT_HEADER = ["Ticker", "Company", "Exchange", "CIK"];
+
+/** given the filtered companies, return [header, ...rows] as plain strings */
+function exportRows(companies: DirectoryCompany[]): string[][] {
+  return [EXPORT_HEADER,
+          ...companies.map((c) => [c.ticker, c.name, c.exchange, c.cik])];
+}
+
 /**
  * given the filtered companies
  * return them as csv text, mirroring the backend export's columns
@@ -36,6 +46,19 @@ function toCsv(companies: DirectoryCompany[]): string {
     [c.cik, `"${c.name.replaceAll('"', '""')}"`, c.ticker, c.exchange].join(",")
   );
   return ["cik,name,ticker,exchange", ...rows].join("\n");
+}
+
+/**
+ * given the filtered companies
+ * return them as a markdown table
+ */
+function toMarkdown(companies: DirectoryCompany[]): string {
+  const lines = [
+    `| ${EXPORT_HEADER.join(" | ")} |`,
+    `|${EXPORT_HEADER.map(() => "---").join("|")}|`,
+    ...companies.map((c) => `| ${c.ticker} | ${c.name} | ${c.exchange} | ${c.cik} |`),
+  ];
+  return lines.join("\n");
 }
 
 export default function DirectoryPage() {
@@ -106,14 +129,21 @@ export default function DirectoryPage() {
     setOffset(0);
   };
 
-  const download = () => {
+  const downloadCsv = () => {
     if (!data) return;
-    const blob = new Blob([toCsv(data.companies)], { type: "text/csv" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "dossier-directory.csv";
-    link.click();
-    URL.revokeObjectURL(link.href);
+    download(toCsv(data.companies), "dossier-directory.csv", "text/csv");
+  };
+
+  const downloadMarkdown = () => {
+    if (!data) return;
+    download(toMarkdown(data.companies), "dossier-directory.md", "text/markdown");
+  };
+
+  const downloadExcel = () => {
+    if (!data) return;
+    const bytes = buildXlsx("Directory", exportRows(data.companies));
+    download(bytes, "dossier-directory.xlsx",
+             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   };
 
   return (
@@ -122,16 +152,27 @@ export default function DirectoryPage() {
         <PageHead
           title="Company directory"
           actions={
-            <button type="button" className="chip" onClick={download} disabled={!data}>
-              Download CSV
-            </button>
+            <div className="row no-print" style={{ gap: 6, flexWrap: "wrap" }}>
+              <button type="button" className="chip" onClick={downloadCsv} disabled={!data}>
+                CSV
+              </button>
+              <button type="button" className="chip" onClick={downloadExcel} disabled={!data}>
+                Excel
+              </button>
+              <button type="button" className="chip" onClick={() => window.print()} disabled={!data}>
+                PDF
+              </button>
+              <button type="button" className="chip" onClick={downloadMarkdown} disabled={!data}>
+                Markdown
+              </button>
+            </div>
           }
         >
           Every SEC-listed company. Search, filter, sort, and open any row as
           a full dossier.
         </PageHead>
 
-        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+        <div className="row no-print" style={{ gap: 8, flexWrap: "wrap" }}>
           <div className="search-bar" style={{ flex: 1, minWidth: 200 }}>
             <input
               type="text"
@@ -235,7 +276,7 @@ export default function DirectoryPage() {
         )}
 
         {data && data.total > PAGE_SIZE && (
-          <div className="row" style={{ gap: 8, marginTop: 12 }}>
+          <div className="row no-print" style={{ gap: 8, marginTop: 12 }}>
             <button
               type="button"
               className="chip"
