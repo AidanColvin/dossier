@@ -1,48 +1,64 @@
 "use client";
 
-// the home page orbit: a small sphere of nodes tumbling in genuine 3d,
-// with connections that continuously re-form between whichever nodes are
-// currently nearest - and the occasional node "firing," a brief flash that
-// ripples out along its live connections. the same idea the app is built
+// the home page orbit: nodes drifting through genuine 3d space, with
+// connections that continuously break and re-form between whichever nodes
+// are currently nearest - and the occasional node "firing," a slow flash
+// that spreads along its live connections. the same idea the app is built
 // on, made visible: a shifting web of relations, not a fixed diagram. no
 // three.js, no canvas; a handful of svg elements whose attributes are
 // written directly on every frame from real 3d coordinates.
 //
-// each node sits at a fixed point on a fibonacci sphere (the standard way
-// to spread points evenly over a sphere's surface, so the cluster reads as
-// a solid globe rather than a flat scatter). every frame the whole sphere
-// rotates around two axes at different speeds - a real rotation, not a
-// per-node trick - then each point is perspective-projected to the 2d
-// canvas: nodes on the near side of the sphere land larger and brighter,
-// nodes swinging to the far side shrink and fade, exactly like an object
-// actually turning in space. nearest-neighbor connections are recomputed
-// in the rotated 3d coordinates (not the flattened 2d ones), so a
-// connection is real proximity in space, and turning the sphere keeps
-// bringing new pairs close enough to link while old ones drift apart.
+// the shape itself is never rigid. each node has a fixed anchor point on a
+// fibonacci sphere (the standard construction for spreading points evenly
+// over a sphere's surface, so the cluster starts out as a solid cloud
+// rather than a flat scatter), but every frame it also wanders away from
+// that anchor along its own independent, out-of-phase path - a different
+// speed and direction on every axis, so no two nodes move alike and the
+// cluster's outline keeps deforming rather than repeating. a plain
+// rotation would preserve every distance between every pair of points
+// exactly (rotation cannot change the shape of a rigid body), which is
+// why an earlier version's connections never actually changed even though
+// they were recomputed every frame; the independent wander is what makes
+// the nearest-neighbor graph genuinely different from moment to moment.
+// the whole wandering cloud is then rotated around two axes for the
+// tumble, and perspective-projected: nodes on the near side land larger
+// and brighter, the far side shrinks and fades.
 
 import { useEffect, useRef } from "react";
 
 const NODE_COUNT = 30;
 const MAX_LINES = 50;
 const NEIGHBORS_PER_NODE = 3;
-const RECONNECT_MS = 150;
+const RECONNECT_MS = 260;
 const SIZE = 280;
 const CENTER = SIZE / 2;
 const SPHERE_RADIUS = 78;
+const WANDER_AMPLITUDE = SPHERE_RADIUS * 0.55;
 const FOCAL_LENGTH = 210;
-const ROTATE_Y_SPEED = 0.16; // radians/second, the primary tumble
-const ROTATE_X_SPEED = 0.07; // a slower cross-axis wobble, so the turn
-                              // never repeats as a flat, predictable spin
+const ROTATE_Y_SPEED = 0.1; // radians/second, the primary tumble
+const ROTATE_X_SPEED = 0.045; // a slower cross-axis wobble, so the turn
+                               // never repeats as a flat, predictable spin
 
 interface Node {
-  // fixed 3d position on the sphere's surface; never changes.
+  // fixed anchor on the sphere; the node wanders around this, it never
+  // sits still on it.
   x0: number;
   y0: number;
   z0: number;
+  // per-axis wander: independent speed and phase, so this node's drift
+  // never lines up with any other node's.
+  wSpeedX: number;
+  wSpeedY: number;
+  wSpeedZ: number;
+  wPhaseX: number;
+  wPhaseY: number;
+  wPhaseZ: number;
+  wAmplitude: number;
   baseSize: number;
   pulsePeriod: number;
   pulsePhase: number;
-  // live, recomputed every frame: rotated 3d position and its 2d projection.
+  // live, recomputed every frame: wandered-and-rotated 3d position and its
+  // 2d projection.
   x: number;
   y: number;
   z: number;
@@ -53,9 +69,11 @@ interface Node {
 
 /**
  * given an index and the total node count
- * return one node fixed at its point on a fibonacci sphere - the standard
- * construction for spreading points evenly over a sphere's surface, which
- * is what makes the cluster read as a solid globe instead of a flat disc
+ * return one node anchored to a point on a fibonacci sphere, with its own
+ * independent wander parameters - the standard sphere construction gives
+ * an even starting cloud; the per-node speeds and phases (all derived from
+ * the index, not random, so the layout is stable) are what keep every
+ * node's path distinct from every other node's
  */
 function makeNode(index: number, total: number): Node {
   const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -66,8 +84,15 @@ function makeNode(index: number, total: number): Node {
     x0: Math.cos(theta) * ringRadius * SPHERE_RADIUS,
     y0: y0 * SPHERE_RADIUS,
     z0: Math.sin(theta) * ringRadius * SPHERE_RADIUS,
+    wSpeedX: 0.16 + ((index * 11) % 13) * 0.02,
+    wSpeedY: 0.13 + ((index * 7) % 11) * 0.02,
+    wSpeedZ: 0.1 + ((index * 5) % 9) * 0.018,
+    wPhaseX: index * 0.71,
+    wPhaseY: index * 1.13 + 1.7,
+    wPhaseZ: index * 1.47 + 3.1,
+    wAmplitude: WANDER_AMPLITUDE * (0.75 + ((index * 3) % 5) * 0.1),
     baseSize: 2.6 + ((index * 7) % 5) * 0.5,
-    pulsePeriod: 2.2 + (index % 5) * 0.7,
+    pulsePeriod: 4.5 + (index % 6) * 1.4,
     pulsePhase: index * 0.53,
     x: 0,
     y: 0,
@@ -80,13 +105,13 @@ function makeNode(index: number, total: number): Node {
 
 /**
  * given a node's fire-pulse timing and the elapsed seconds
- * return a value from 0 (quiet) to 1 (mid-flash), sharply peaked rather
- * than a smooth sine, so each node reads as a brief firing event rather
- * than a slow breathing pulse
+ * return a value from 0 (quiet) to 1 (mid-flash). a moderate power keeps
+ * the flash reading as a distinct event without either smearing into a
+ * slow breathing glow or snapping on and off too fast to follow.
  */
 function pulseAt(node: Node, elapsedSeconds: number): number {
   const phase = (elapsedSeconds / node.pulsePeriod) * Math.PI * 2 + node.pulsePhase;
-  return Math.max(0, Math.sin(phase)) ** 10;
+  return Math.max(0, Math.sin(phase)) ** 4;
 }
 
 export function HomeOrbit() {
@@ -103,7 +128,11 @@ export function HomeOrbit() {
     let lastConnect = 0;
     let active: Array<[number, number]> = [];
 
-    /** given elapsed seconds, rotate every node's fixed 3d position and project it */
+    /**
+     * given elapsed seconds, wander every node away from its anchor along
+     * its own independent path, rotate the resulting (non-rigid) cloud,
+     * and project it
+     */
     function step(elapsedSeconds: number) {
       const angleY = elapsedSeconds * ROTATE_Y_SPEED;
       const angleX = Math.sin(elapsedSeconds * ROTATE_X_SPEED) * 0.6;
@@ -113,10 +142,20 @@ export function HomeOrbit() {
       const sinX = Math.sin(angleX);
 
       for (const node of nodesRef.current) {
-        // rotate around the vertical axis first...
-        const x1 = node.x0 * cosY + node.z0 * sinY;
-        const z1 = -node.x0 * sinY + node.z0 * cosY;
-        const y1 = node.y0;
+        // each node drifts away from its sphere anchor on its own path;
+        // no two nodes share a speed or phase, so the cloud's outline is
+        // different every frame instead of holding a fixed shape.
+        const wx = node.wAmplitude * Math.sin(elapsedSeconds * node.wSpeedX + node.wPhaseX);
+        const wy = node.wAmplitude * Math.sin(elapsedSeconds * node.wSpeedY + node.wPhaseY);
+        const wz = node.wAmplitude * Math.sin(elapsedSeconds * node.wSpeedZ + node.wPhaseZ);
+        const wx0 = node.x0 + wx;
+        const wy0 = node.y0 + wy;
+        const wz0 = node.z0 + wz;
+
+        // rotate the wandered point around the vertical axis first...
+        const x1 = wx0 * cosY + wz0 * sinY;
+        const z1 = -wx0 * sinY + wz0 * cosY;
+        const y1 = wy0;
         // ...then tip that result around the horizontal axis, so the turn
         // is a real tumble rather than a flat carousel spin.
         const y2 = y1 * cosX - z1 * sinX;
