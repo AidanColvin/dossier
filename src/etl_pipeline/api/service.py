@@ -10,11 +10,18 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Iterator, Optional
 
-from etl_pipeline.api.schemas import RunRequest, RunResponse, SectorRequest
+from etl_pipeline.api.schemas import (
+    PartnershipResponse,
+    RunRequest,
+    RunResponse,
+    SectorRequest,
+)
 from etl_pipeline.config import Config
 from etl_pipeline.core.pipeline import collect
 from etl_pipeline.http_client import Fetcher
 from etl_pipeline.models import Query, RunResult, SourceResult, record_from_dict
+from etl_pipeline.partnerships.resolver import resolve_partnership
+from etl_pipeline.partnerships.talking_points import build_talking_points
 from etl_pipeline.sector.orchestrator import run_sector
 from etl_pipeline.sector.report import build_report
 from etl_pipeline.text import slugify
@@ -133,6 +140,33 @@ def sector_event_stream(sector: str, http: Fetcher | None = None,
             return
         kind, payload = item
         yield sse_line(kind, payload)
+
+
+def run_partnership_lookup(company: str, institution: str,
+                           http: Fetcher | None = None) -> PartnershipResponse:
+    """
+    given a company and an institution
+    return the full partnership payload with ranked talking points
+    """
+    result = resolve_partnership(company, institution, http=http)
+    points = build_talking_points(result.company.name,
+                                  result.institution.name,
+                                  result.evidence, result.signals)
+    return PartnershipResponse(
+        company=result.company.name,
+        company_resolved=result.company.resolved,
+        ticker=result.company.ticker,
+        cik=result.company.cik,
+        institution=result.institution.name,
+        institution_resolved=result.institution.resolved,
+        papers=[asdict(p) for p in result.evidence.papers],
+        trials=[asdict(t) for t in result.evidence.trials],
+        faculty_leads=[asdict(f) for f in result.evidence.faculty_leads],
+        filing_mentions=[asdict(m) for m in result.evidence.filing_mentions],
+        signals=[asdict(s) for s in result.signals],
+        talking_points=[asdict(p) for p in points],
+        statuses=[asdict(s) for s in result.statuses],
+        elapsed_seconds=result.elapsed_seconds)
 
 
 def _load_sample() -> dict:

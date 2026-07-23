@@ -1,0 +1,38 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT01000001",
+          "briefTitle": "AI-guided imaging study with academic partner"
+        },
+        "statusModule": {
+          "overallStatus": "RECRUITING",
+          "startDateStruct": {"date": "2024-06-01"}
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": {"name": "NVIDIA"},
+          "collaborators": [
+            {"name": "University of North Carolina at Chapel Hill"}
+          ]
+        }
+      }
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT01000002",
+          "briefTitle": "Site-only study mentioning the university"
+        },
+        "statusModule": {
+          "overallStatus": "COMPLETED",
+          "startDateStruct": {"date": "2023-02-15"}
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": {"name": "NVIDIA"},
+          "collaborators": []
+        }
+      }
+    }
+  ]
+}

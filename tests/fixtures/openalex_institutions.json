@@ -1,0 +1,32 @@
+{
+  "company": {
+    "results": [
+      {
+        "id": "https://openalex.org/I4210131549",
+        "display_name": "NVIDIA (United States)",
+        "ror": "https://ror.org/0104rcc94",
+        "type": "company",
+        "country_code": "US",
+        "works_count": 5000
+      }
+    ]
+  },
+  "education": {
+    "results": [
+      {
+        "id": "https://openalex.org/I137902535",
+        "display_name": "University of North Carolina at Chapel Hill",
+        "ror": "https://ror.org/0130frc33",
+        "type": "education",
+        "works_count": 250000
+      },
+      {
+        "id": "https://openalex.org/I999",
+        "display_name": "North Carolina Widget Company",
+        "ror": "https://ror.org/09999",
+        "type": "company",
+        "works_count": 12
+      }
+    ]
+  }
+}

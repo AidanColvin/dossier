@@ -154,3 +154,91 @@ class SectorResponse(BaseModel):
     companies: list[SectorCompanySection]
     verification: SectorVerification
     references: list[SectorReference]
+
+
+class CoauthoredPaperModel(BaseModel):
+    """one co-authored work shown as partnership evidence."""
+
+    title: str
+    url: str
+    date: str
+    journal: str = ""
+
+
+class PartnerTrialModel(BaseModel):
+    """one trial tying the company to the institution."""
+
+    nct_id: str
+    title: str
+    status: str
+    date: str
+    url: str
+    is_joint: bool = False
+
+
+class FacultyLeadModel(BaseModel):
+    """one funded project at the institution naming the company."""
+
+    pi_names: list[str] = []
+    department: str = ""
+    project_num: str = ""
+    title: str = ""
+    fiscal_year: str = ""
+    award_amount: Optional[float] = None
+    url: str = ""
+
+
+class FilingMentionModel(BaseModel):
+    """one company filing mentioning the institution."""
+
+    form: str = ""
+    filed: str = ""
+    accession: str
+    url: str
+
+
+class RelationshipSignalModel(BaseModel):
+    """one ranked, sourced relationship statement."""
+
+    strength: str
+    kind: str
+    description: str
+    url: str = ""
+
+
+class LookupStatusModel(BaseModel):
+    """the outcome of one partnership evidence lookup."""
+
+    source: str
+    ok: bool
+    error: str = ""
+    count: int = 0
+
+
+class TalkingPointModel(BaseModel):
+    """one ranked outreach point."""
+
+    category: str
+    headline: str
+    detail: str
+    strength: str
+    url: str = ""
+
+
+class PartnershipResponse(BaseModel):
+    """the payload returned by /partnerships."""
+
+    company: str
+    company_resolved: bool
+    ticker: str = ""
+    cik: str = ""
+    institution: str
+    institution_resolved: bool
+    papers: list[CoauthoredPaperModel] = []
+    trials: list[PartnerTrialModel] = []
+    faculty_leads: list[FacultyLeadModel] = []
+    filing_mentions: list[FilingMentionModel] = []
+    signals: list[RelationshipSignalModel] = []
+    talking_points: list[TalkingPointModel] = []
+    statuses: list[LookupStatusModel] = []
+    elapsed_seconds: float = 0.0

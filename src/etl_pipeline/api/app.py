@@ -11,6 +11,7 @@ from fastapi.responses import StreamingResponse
 
 from etl_pipeline import __version__
 from etl_pipeline.api.schemas import (
+    PartnershipResponse,
     RunRequest,
     RunResponse,
     SectorRequest,
@@ -18,6 +19,7 @@ from etl_pipeline.api.schemas import (
 )
 from etl_pipeline.api.service import (
     demo_result,
+    run_partnership_lookup,
     run_pipeline,
     run_sector_pipeline,
     sector_event_stream,
@@ -77,6 +79,13 @@ def create_app() -> FastAPI:
                fetcher: Optional[Fetcher] = Depends(get_fetcher)) -> SectorResponse:
         """run a sector scan and return the finished report in one response."""
         return SectorResponse(**run_sector_pipeline(request, http=fetcher))
+
+    @app.get("/partnerships", response_model=PartnershipResponse)
+    def partnerships(company: str = Query(..., min_length=1, max_length=80),
+                     institution: str = Query(..., min_length=1, max_length=120),
+                     fetcher: Optional[Fetcher] = Depends(get_fetcher)) -> PartnershipResponse:
+        """find sourced links between a company and a research institution."""
+        return run_partnership_lookup(company, institution, http=fetcher)
 
     @app.get("/sector/stream")
     def sector_stream(sector: str = Query(..., min_length=1, max_length=80),

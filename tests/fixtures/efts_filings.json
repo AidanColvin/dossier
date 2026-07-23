@@ -1,0 +1,15 @@
+{
+  "hits": {
+    "total": {"value": 1},
+    "hits": [
+      {
+        "_source": {
+          "adsh": "0001045810-25-000023",
+          "root_forms": ["10-K"],
+          "file_date": "2025-02-26",
+          "display_names": ["NVIDIA CORP  (NVDA)  (CIK 0001045810)"]
+        }
+      }
+    ]
+  }
+}

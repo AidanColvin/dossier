@@ -1,0 +1,27 @@
+{
+  "results": [
+    {
+      "appl_id": "10111111",
+      "project_num": "R01GM123456",
+      "project_title": "GPU-accelerated genomics with NVIDIA hardware",
+      "fiscal_year": "2024",
+      "award_amount": 512345,
+      "organization": {"dept_type": "GENETICS"},
+      "principal_investigators": [
+        {"full_name": "Jordan Smith"},
+        {"full_name": "Alex Chen"}
+      ]
+    },
+    {
+      "appl_id": "10222222",
+      "project_num": "R21CA654321",
+      "project_title": "Deep learning imaging pilot naming NVIDIA",
+      "fiscal_year": "2022",
+      "award_amount": null,
+      "organization": {"dept_type": "RADIOLOGY"},
+      "principal_investigators": [
+        {"full_name": "Sam Rivera"}
+      ]
+    }
+  ]
+}
