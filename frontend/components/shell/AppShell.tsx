@@ -1,9 +1,9 @@
 "use client";
 
 // The persistent chrome for every route: a single slim header with the logo,
-// a search field, and an info icon. The seven tab nav is gone. The info icon
-// opens the how it works panel, which also opens when a legacy route redirects
-// here with ?info=1.
+// the engine nav, a search field, and an info icon. The info icon opens the
+// how it works panel, which also opens when a legacy route redirects here
+// with ?info=1.
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -30,6 +30,41 @@ function LogoMark({ size = 20 }: { size?: number }) {
         </g>
       ))}
     </svg>
+  );
+}
+
+// One tab per engine. Home stays the company search; every other surface
+// gets a stable, shareable route.
+const NAV_LINKS: Array<{ href: string; label: string }> = [
+  { href: "/sectors", label: "Sectors" },
+  { href: "/partnerships", label: "Partnerships" },
+  { href: "/directory", label: "Directory" },
+  { href: "/projects", label: "Projects" },
+];
+
+/**
+ * given the current pathname
+ * render the engine nav, marking the active route so the header always says
+ * where the visitor is
+ */
+function EngineNav({ pathname }: { pathname: string }) {
+  return (
+    <nav className="shell-nav" aria-label="Engines">
+      {NAV_LINKS.map((link) => {
+        const active = pathname.startsWith(link.href);
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="shell-tab"
+            data-active={active}
+            aria-current={active ? "page" : undefined}
+          >
+            {link.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -95,6 +130,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <LogoMark />
           <span>Dossier</span>
         </Link>
+
+        <EngineNav pathname={pathname} />
 
         <div className="shell-header__search">
           {/* The homepage owns the big centered search, so the header search

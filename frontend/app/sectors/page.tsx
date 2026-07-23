@@ -109,25 +109,24 @@ export default function SectorsPage() {
         </PageHead>
 
         <form
-          className="row"
-          style={{ gap: 8 }}
           onSubmit={(event) => {
             event.preventDefault();
             void scan(sector);
           }}
         >
-          <input
-            type="text"
-            value={sector}
-            onChange={(event) => setSector(event.target.value)}
-            placeholder="semiconductors, pharma, banking..."
-            aria-label="Sector to scan"
-            maxLength={80}
-            style={{ flex: 1 }}
-          />
-          <button type="submit" className="button" disabled={running}>
-            {running ? "Scanning" : "Scan"}
-          </button>
+          <div className="search-bar">
+            <input
+              type="text"
+              value={sector}
+              onChange={(event) => setSector(event.target.value)}
+              placeholder="semiconductors, pharma, banking..."
+              aria-label="Sector to scan"
+              maxLength={80}
+            />
+            <button type="submit" className="btn btn--primary" disabled={running}>
+              {running ? "Scanning" : "Scan"}
+            </button>
+          </div>
         </form>
 
         <div className="row" style={{ gap: 6, flexWrap: "wrap", marginTop: 8 }}>

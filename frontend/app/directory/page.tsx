@@ -132,15 +132,16 @@ export default function DirectoryPage() {
         </PageHead>
 
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => setQuery({ search: event.target.value })}
-            placeholder="Search name or ticker"
-            aria-label="Search the directory"
-            maxLength={80}
-            style={{ flex: 1, minWidth: 200 }}
-          />
+          <div className="search-bar" style={{ flex: 1, minWidth: 200 }}>
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setQuery({ search: event.target.value })}
+              placeholder="Search name or ticker"
+              aria-label="Search the directory"
+              maxLength={80}
+            />
+          </div>
           <button
             type="button"
             className="chip"

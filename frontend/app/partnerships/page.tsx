@@ -55,34 +55,32 @@ export default function PartnershipsPage() {
         </PageHead>
 
         <form
-          className="row"
-          style={{ gap: 8, flexWrap: "wrap" }}
           onSubmit={(event) => {
             event.preventDefault();
             void lookup(company, institution);
           }}
         >
-          <input
-            type="text"
-            value={company}
-            onChange={(event) => setCompany(event.target.value)}
-            placeholder="Company (name or ticker)"
-            aria-label="Company"
-            maxLength={80}
-            style={{ flex: 1, minWidth: 180 }}
-          />
-          <input
-            type="text"
-            value={institution}
-            onChange={(event) => setInstitution(event.target.value)}
-            placeholder="Institution (UNC, MIT, Stanford...)"
-            aria-label="Institution"
-            maxLength={120}
-            style={{ flex: 1, minWidth: 180 }}
-          />
-          <button type="submit" className="button" disabled={loading}>
-            {loading ? "Searching" : "Find links"}
-          </button>
+          <div className="search-bar">
+            <input
+              type="text"
+              value={company}
+              onChange={(event) => setCompany(event.target.value)}
+              placeholder="Company (name or ticker)"
+              aria-label="Company"
+              maxLength={80}
+            />
+            <input
+              type="text"
+              value={institution}
+              onChange={(event) => setInstitution(event.target.value)}
+              placeholder="Institution (UNC, MIT, Stanford...)"
+              aria-label="Institution"
+              maxLength={120}
+            />
+            <button type="submit" className="btn btn--primary" disabled={loading}>
+              {loading ? "Searching" : "Find links"}
+            </button>
+          </div>
         </form>
 
         <div className="row" style={{ gap: 6, marginTop: 8 }}>
