@@ -2140,9 +2140,12 @@ table.data tbody tr:hover {
 }
 
 /* ---------------------------------------------------------------------------
-   Home orbit - a quiet animated node graph behind the hero search, echoing
-   the brand mark. Pure SVG + CSS rotation; prefers-reduced-motion (above)
-   already flattens the animation duration to near-zero.
+   Home orbit - a small network of nodes on independent, ever-changing
+   paths, connections re-forming as the nearest pairs shift. Animated by a
+   requestAnimationFrame loop in the component (not CSS keyframes, since the
+   line endpoints have to track wherever their nodes currently are); the
+   component itself checks prefers-reduced-motion and settles on one still
+   frame when it is set, so there is nothing left for CSS to disable here.
    ------------------------------------------------------------------------- */
 .home-orbit {
   display: flex;
@@ -2154,19 +2157,4 @@ table.data tbody tr:hover {
 .home-orbit__svg {
   max-width: 100%;
   height: auto;
-}
-
-.home-orbit__ring {
-  animation-name: home-orbit-spin;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-@keyframes home-orbit-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
