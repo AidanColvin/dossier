@@ -4,8 +4,9 @@
 //
 // Usage: node scripts/refreshStartHere.mjs
 //
-// This mirrors lib/summary/pickHeadline.ts. Keep the two in step: this script
-// is plain ESM so it can run in CI without a TypeScript build step.
+// This mirrors lib/summary/generateLede.ts (money-first, identity, then
+// activity as context). Keep the two in step: this script is plain ESM so
+// it can run in CI without a TypeScript build step.
 
 import { writeFileSync } from "node:fs";
 
@@ -102,8 +103,8 @@ function phrase(record) {
   }
 }
 
-/** Takes an entity and its records. Returns the one or two sentence lede. */
-function generateLede(entity, records) {
+/** Takes an entity and its records. Returns the one or two sentence activity headline. */
+function pickHeadline(entity, records) {
   if (records.length === 0) return `${entity} has no public records across the four sources searched.`;
   if (records.length === 1) return `${entity}'s only public record is ${truncateTitle(records[0].title)}.`;
 
@@ -116,6 +117,78 @@ function generateLede(entity, records) {
   const sentences = [phrase(primary)];
   if (secondary) sentences.push(phrase(secondary));
   return sentences.join(" ");
+}
+
+/** Takes a dollar amount. Returns it compact: $416.2B, $89.3M, $512,345. */
+function compactMoney(value) {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(1)}T`;
+  if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
+  if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(0)}M`;
+  return `${sign}$${abs.toLocaleString()}`;
+}
+
+/** Takes the entity name and its profile. Returns the money sentence, or "". */
+function financeSentence(entity, profile) {
+  const revenue = profile?.financials?.revenue ?? {};
+  const years = Object.keys(revenue).sort();
+  const latest = years[years.length - 1];
+  const value = revenue[latest];
+  if (!latest || !value) return "";
+
+  const parts = [`${entity} generated ${compactMoney(value)} in revenue in FY${latest}`];
+
+  const prior = revenue[years[years.length - 2]];
+  if (prior) {
+    const growth = Math.round(((value - prior) / Math.abs(prior)) * 100);
+    if (growth !== 0) {
+      parts.push(`${growth > 0 ? "up" : "down"} ${Math.abs(growth)}% year over year`);
+    }
+  }
+
+  const netIncome = profile?.financials?.net_income?.[latest];
+  if (netIncome != null) {
+    if (netIncome >= 0) {
+      const margin = Math.round((netIncome / value) * 1000) / 10;
+      parts.push(`with net income of ${compactMoney(netIncome)} at a ${margin}% net margin`);
+    } else {
+      parts.push(`with a net loss of ${compactMoney(Math.abs(netIncome))}`);
+    }
+  }
+
+  return `${parts.join(", ")}.`;
+}
+
+/** Takes the profile. Returns the identity sentence, or "". */
+function identitySentence(profile) {
+  if (!profile) return "";
+  const bits = [];
+  if (profile.ticker && profile.exchange) {
+    bits.push(`It trades as ${profile.ticker} on ${profile.exchange}`);
+  } else if (profile.ticker) {
+    bits.push(`It trades as ${profile.ticker}`);
+  }
+  if (profile.industry) {
+    bits.push(bits.length ? `in ${profile.industry}` : `It operates in ${profile.industry}`);
+  }
+  if (profile.city && profile.state) {
+    bits.push(
+      bits.length
+        ? `from ${profile.city}, ${profile.state}`
+        : `It is headquartered in ${profile.city}, ${profile.state}`
+    );
+  }
+  return bits.length ? `${bits.join(", ")}.` : "";
+}
+
+/** Takes an entity, its records, and its profile. Returns the full lede. */
+function generateLede(entity, records, profile) {
+  const finance = financeSentence(entity, profile);
+  const headline = pickHeadline(entity, records);
+  if (!finance) return headline;
+  const identity = identitySentence(profile);
+  return [finance, identity, headline].filter(Boolean).join(" ");
 }
 
 /** Fetches every company and writes the cached data module. */
@@ -133,7 +206,7 @@ async function main() {
       ticker: c.ticker,
       name,
       industry: data.profile?.industry ?? "",
-      lede: generateLede(name, data.records ?? []),
+      lede: generateLede(name, data.records ?? [], data.profile),
     });
   }
 

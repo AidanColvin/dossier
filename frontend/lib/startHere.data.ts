@@ -11,18 +11,18 @@ export const START_HERE: StartHereCard[] = [
     "ticker": "AAPL",
     "name": "Apple Inc",
     "industry": "Electronic Computers",
-    "lede": "Its researchers most recently published on Scaling Search Relevance: Augmenting App Store Ranking with LLM-Generated Judgments, in July 2026. Its most recent major filing is a quarterly report (10-Q), May 2026."
+    "lede": "Apple Inc generated $416.2B in revenue in FY2025, up 6% year over year, with net income of $112.0B at a 26.9% net margin. It trades as AAPL on Nasdaq, in Electronic Computers, from Cupertino, CA. Its researchers most recently published on IndicMedQA: Multimodal Medical Query Analysis in Indian Languages, in July 2026. Its most recent major filing is a quarterly report (10-Q), May 2026."
   },
   {
     "ticker": "MRNA",
     "name": "Moderna, Inc",
     "industry": "Biological Products, (No Diagnostic Substances)",
-    "lede": "Its researchers most recently published on Structural basis of membrane engagement and polyreactivity control in HIV-1 MPER broadly…, in July 2026. Its most recent major filing is a current report (8-K), July 2026."
+    "lede": "Moderna, Inc generated $1.9B in revenue in FY2025, down 40% year over year, with a net loss of $2.8B. It trades as MRNA on Nasdaq, in Biological Products, (No Diagnostic Substances), from Cambridge, MA. Its researchers most recently published on Structural basis of membrane engagement and polyreactivity control in HIV-1 MPER broadly…, in July 2026. Its most recent major filing is a current report (8-K), July 2026."
   },
   {
     "ticker": "NVDA",
     "name": "NVIDIA Corp",
     "industry": "Semiconductors & Related Devices",
-    "lede": "Its researchers most recently published on Computational History and Heritage: New Enquiries Through Synthesis, in July 2026. Its most recent major filing is a current report (8-K), July 2026."
+    "lede": "NVIDIA Corp generated $215.9B in revenue in FY2026, up 65% year over year, with net income of $120.1B at a 55.6% net margin. It trades as NVDA on Nasdaq, in Semiconductors & Related Devices, from Santa Clara, CA. Its researchers most recently published on Power-Centric Observability for HPC Systems: Design, Deployment, and Evaluation on REPACSS, in July 2026. Its most recent major filing is a current report (8-K), July 2026."
   }
 ];
