@@ -5,14 +5,15 @@
 // the interactive dossier, this page is the readable artifact: executive
 // summary first, then the company overview in its own 10-K words, strategic
 // direction signals, revenue trajectory with growth rates and charts,
-// profitability, research and partnership records, workforce and competitive
-// signals, risks, outlook, filings, leadership, and numbered sources. it
+// profitability, research and partnership records, workforce signals,
+// outlook, filings, and numbered sources. leadership, risks, and
+// competitive positioning stay on the interactive dossier only. it
 // exports as markdown, word, and pdf (print), all rendered from one model.
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
-import { BarChart, LineChart, OrgChart, type Series } from "@/components/Charts";
+import { BarChart, LineChart, type Series } from "@/components/Charts";
 import { Empty, SourceChip } from "@/components/ui";
 import { SaveToProject } from "@/components/shared/SaveToProject";
 import { download } from "@/lib/exports";
@@ -377,32 +378,6 @@ export default function ReportPage() {
               </Section>
             )}
 
-            {model.competitive.length > 0 && (
-              <Section
-                title="Competitive Positioning"
-                note="In the company's own words, from its latest filings."
-              >
-                <ul className="stack" style={{ gap: 4, paddingLeft: 18, margin: 0 }}>
-                  {model.competitive.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </Section>
-            )}
-
-            {model.riskHeadlines.length > 0 && (
-              <Section
-                title="Key Risks, As the Company Names Them"
-                note="Risk categories from Item 1A of the latest 10-K."
-              >
-                <ul className="stack" style={{ gap: 4, paddingLeft: 18, margin: 0 }}>
-                  {model.riskHeadlines.map((headline) => (
-                    <li key={headline}>{headline}</li>
-                  ))}
-                </ul>
-              </Section>
-            )}
-
             {model.outlook && (
               <Section
                 title="Outlook"
@@ -428,15 +403,6 @@ export default function ReportPage() {
                     </li>
                   ))}
                 </ul>
-              </Section>
-            )}
-
-            {model.leadership.length > 0 && (
-              <Section
-                title="Leadership"
-                note="Named officers from recent SEC Form 4 filings."
-              >
-                <OrgChart leaders={model.leadership} />
               </Section>
             )}
 

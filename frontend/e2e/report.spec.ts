@@ -8,12 +8,19 @@ test("the report renders its sections in order", async ({ page }) => {
   ).toBeVisible({ timeout: 15000 });
 
   const headings = ["Executive Summary", "Company Overview", "Strategic Direction",
-                    "Business Model & Financial Performance", "Key Risks",
-                    "Leadership", "Sources"];
+                    "Business Model & Financial Performance", "Sources"];
   for (const heading of headings) {
     await expect(
       page.getByRole("heading", { name: new RegExp(heading, "i") })
     ).toBeVisible();
+  }
+
+  // leadership, risks, and competitive positioning belong to the
+  // interactive dossier, never the report document.
+  for (const absent of ["Leadership", "Key Risks", "Competitive Positioning"]) {
+    await expect(
+      page.getByRole("heading", { name: new RegExp(absent, "i") })
+    ).toHaveCount(0);
   }
 
   // the executive summary opens with money, never with a paper title.

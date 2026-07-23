@@ -3,8 +3,8 @@
 // buildReportModel derives every section of a board-ready deep dive from a
 // finished run: executive summary, company overview in the 10-K's own words,
 // strategic direction signals, revenue trajectory with growth rates,
-// profitability, research and partnership records, workforce and competitive
-// signals, risks, filings, outlook, leadership, and a numbered source list.
+// profitability, research and partnership records, workforce signals,
+// filings, outlook, and a numbered source list.
 // the page, the markdown download, and the word download all render from
 // this one model, so the three can never disagree. deterministic throughout:
 // no model, no randomness. every sentence is derived from the filings and
@@ -46,14 +46,11 @@ export interface ReportModel {
   financialRows: ReportFinancialRow[];
   rdSentence: string;
   workforce: string;
-  competitive: string[];
-  riskHeadlines: string[];
   filings: Array<{ form: string; filed: string; url: string }>;
   papers: PipelineRecord[];
   trials: PipelineRecord[];
   grants: PipelineRecord[];
   outlook: string;
-  leadership: Array<{ name: string; title: string }>;
   sources: string[];
   generatedFrom: string;
 }
@@ -323,34 +320,6 @@ function workforceSentence(profile: CompanyProfile | null | undefined): string {
 }
 
 /**
- * Takes the profile. Returns competitive positioning lines in the company's
- * own words: sentences from its filings that name competition, plus any
- * competition-flavored risk categories.
- */
-function competitiveLines(profile: CompanyProfile | null | undefined): string[] {
-  const lines: string[] = [];
-  const texts = [profile?.business_summary, profile?.outlook].filter(
-    (text): text is string => Boolean(text)
-  );
-  for (const text of texts) {
-    for (const sentence of sentencesOf(text)) {
-      if (/\bcompet/i.test(sentence) && !lines.includes(sentence)) {
-        lines.push(sentence);
-      }
-      if (lines.length >= 3) break;
-    }
-    if (lines.length >= 3) break;
-  }
-  for (const headline of profile?.risk_headlines ?? []) {
-    if (/\bcompet|industry|market\b/i.test(headline)) {
-      const line = `Named risk category: ${headline}`;
-      if (!lines.includes(line)) lines.push(line);
-    }
-  }
-  return lines.slice(0, 5);
-}
-
-/**
  * Takes a finished run. Returns the report model, every section derived
  * from data already in hand: nothing here fetches.
  */
@@ -424,8 +393,6 @@ export function buildReportModel(run: RunResult): ReportModel {
     financialRows,
     rdSentence: rdGrowthSentence(financials),
     workforce: workforceSentence(profile),
-    competitive: competitiveLines(profile),
-    riskHeadlines: profile?.risk_headlines ?? [],
     filings: (profile?.filings ?? []).map((filing) => ({
       form: filing.form,
       filed: filing.filed,
@@ -435,7 +402,6 @@ export function buildReportModel(run: RunResult): ReportModel {
     trials: ofType("trial", 5),
     grants: ofType("grant", 5),
     outlook: profile?.outlook ?? "",
-    leadership: profile?.leadership ?? [],
     sources,
     generatedFrom:
       "SEC EDGAR, OpenAlex, ClinicalTrials.gov, and NIH RePORTER. " +
@@ -531,18 +497,6 @@ export function companyReportMarkdown(model: ReportModel): string {
                "*From the company's own filings.*", "");
   }
 
-  if (model.competitive.length > 0) {
-    lines.push("## Competitive Positioning", "");
-    for (const line of model.competitive) lines.push(`- ${line}`);
-    lines.push("", "*In the company's own words, from its latest filings.*", "");
-  }
-
-  if (model.riskHeadlines.length > 0) {
-    lines.push("## Key Risks, As the Company Names Them", "");
-    for (const headline of model.riskHeadlines) lines.push(`- ${headline}`);
-    lines.push("");
-  }
-
   if (model.outlook) {
     lines.push("## Outlook", "", model.outlook, "",
                "*From management's discussion in the latest annual report.*", "");
@@ -554,14 +508,6 @@ export function companyReportMarkdown(model: ReportModel): string {
       lines.push(`- [${filing.form}](${filing.url}), filed ${filing.filed}`);
     }
     lines.push("");
-  }
-
-  if (model.leadership.length > 0) {
-    lines.push("## Leadership", "");
-    for (const leader of model.leadership) {
-      lines.push(`- **${leader.name}**, ${leader.title}`);
-    }
-    lines.push("", "*Named officers from recent SEC Form 4 filings.*", "");
   }
 
   lines.push("## Sources", "");
@@ -646,16 +592,6 @@ export function companyReportWordHtml(model: ReportModel): string {
     parts.push(`<h2>Hiring &amp; Workforce Signals</h2><p>${esc(model.workforce)}</p>`);
   }
 
-  if (model.competitive.length > 0) {
-    parts.push(`<h2>Competitive Positioning</h2><ul>` +
-      model.competitive.map((line) => `<li>${esc(line)}</li>`).join("") + `</ul>`);
-  }
-
-  if (model.riskHeadlines.length > 0) {
-    parts.push(`<h2>Key Risks</h2><ul>` +
-      model.riskHeadlines.map((h) => `<li>${esc(h)}</li>`).join("") + `</ul>`);
-  }
-
   if (model.outlook) {
     parts.push(`<h2>Outlook</h2><p>${esc(model.outlook)}</p>`);
   }
@@ -665,12 +601,6 @@ export function companyReportWordHtml(model: ReportModel): string {
       model.filings.map((f) =>
         `<li><a href="${esc(f.url)}">${esc(f.form)}</a>, filed ${esc(f.filed)}</li>`
       ).join("") + `</ul>`);
-  }
-
-  if (model.leadership.length > 0) {
-    parts.push(`<h2>Leadership</h2><ul>` +
-      model.leadership.map((l) =>
-        `<li><b>${esc(l.name)}</b>, ${esc(l.title)}</li>`).join("") + `</ul>`);
   }
 
   parts.push(`<h2>Sources</h2><ol>` +
