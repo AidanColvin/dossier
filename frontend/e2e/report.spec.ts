@@ -4,11 +4,12 @@ import { expect, test } from "@playwright/test";
 test("the report renders its sections in order", async ({ page }) => {
   await page.goto("/report/NVDA");
   await expect(
-    page.getByRole("heading", { name: /NVIDIA.*Company Profile/i })
+    page.getByRole("heading", { name: /NVIDIA.*Company Deep Dive/i })
   ).toBeVisible({ timeout: 15000 });
 
-  const headings = ["Executive Summary", "What the Company Does",
-                    "Financial Performance", "Key Risks", "Leadership", "Sources"];
+  const headings = ["Executive Summary", "Company Overview", "Strategic Direction",
+                    "Business Model & Financial Performance", "Key Risks",
+                    "Leadership", "Sources"];
   for (const heading of headings) {
     await expect(
       page.getByRole("heading", { name: new RegExp(heading, "i") })
@@ -24,7 +25,9 @@ test("the financial table carries yearly columns", async ({ page }) => {
   await page.goto("/report/NVDA");
   await expect(page.getByRole("columnheader", { name: /FY2025/ }))
     .toBeVisible({ timeout: 15000 });
-  await expect(page.getByRole("cell", { name: "Revenue", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Revenue", exact: true }).first()
+  ).toBeVisible();
 });
 
 test("markdown and word exports download with the right names", async ({ page }) => {

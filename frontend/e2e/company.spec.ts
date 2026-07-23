@@ -1,14 +1,16 @@
-// the company page: search to dossier, money-first lede, demo honesty.
+// the company page: search to deep dive, money-first lede, demo honesty.
 import { expect, test } from "@playwright/test";
 
-test("searching a company lands on its page with records", async ({ page }) => {
+test("searching a company lands on its deep-dive report", async ({ page }) => {
   await page.goto("/");
   const search = page.locator("[data-hero-search]");
   await search.fill("NVIDIA");
   await search.press("Enter");
-  await expect(page).toHaveURL(/\/company\//i);
-  // sample data serves NVIDIA; the record list renders.
-  await expect(page.locator(".record").first()).toBeVisible({ timeout: 15000 });
+  await expect(page).toHaveURL(/\/report\//i);
+  // sample data serves NVIDIA; the report document renders.
+  await expect(
+    page.getByRole("heading", { name: /Executive Summary/i })
+  ).toBeVisible({ timeout: 15000 });
 });
 
 test("the lede opens with money when financials exist", async ({ page }) => {

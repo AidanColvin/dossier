@@ -2,7 +2,8 @@
 
 // The persistent search field. Renders large and centered when asked (the
 // homepage hero) and compact otherwise (the header on every other route).
-// Submitting routes to the canonical company page for the query.
+// Submitting routes to the full deep-dive report for the query; the
+// interactive dossier stays one click away from the report header.
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,7 +21,7 @@ const ROTATE_MS = 3000;
 
 /**
  * Takes a variant and optional autofocus. Returns a search field that routes
- * to /company/[query] on submit.
+ * to /report/[query] on submit.
  */
 export function PersistentSearch({
   variant = "compact",
@@ -45,12 +46,12 @@ export function PersistentSearch({
     return () => window.clearInterval(timer);
   }, [variant, focused, query]);
 
-  /** Routes to the company page for the trimmed query. */
+  /** Routes to the deep-dive report for the trimmed query. */
   function submit(event: React.FormEvent) {
     event.preventDefault();
     const value = query.trim();
     if (!value) return;
-    router.push(`/company/${encodeURIComponent(value)}`);
+    router.push(`/report/${encodeURIComponent(value)}`);
   }
 
   if (variant === "hero") {

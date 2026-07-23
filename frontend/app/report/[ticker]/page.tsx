@@ -1,16 +1,18 @@
 "use client";
 
-// the full report at /report/[ticker]: the board-ready document view of a
-// company. where /company/[ticker] is the interactive dossier, this page is
-// the readable artifact: executive summary first, then the company's own
-// 10-K words, financial history with charts, risks, filings, research
-// signals, outlook, leadership, and numbered sources. it exports as
-// markdown, word, and pdf (print), all rendered from the same model.
+// the full report at /report/[ticker]: the deep-dive document view of a
+// company, and where the home page search lands. where /company/[ticker] is
+// the interactive dossier, this page is the readable artifact: executive
+// summary first, then the company overview in its own 10-K words, strategic
+// direction signals, revenue trajectory with growth rates and charts,
+// profitability, research and partnership records, workforce and competitive
+// signals, risks, outlook, filings, leadership, and numbered sources. it
+// exports as markdown, word, and pdf (print), all rendered from one model.
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
-import { LineChart, OrgChart, type Series } from "@/components/Charts";
+import { BarChart, LineChart, OrgChart, type Series } from "@/components/Charts";
 import { Empty, SourceChip } from "@/components/ui";
 import { SaveToProject } from "@/components/shared/SaveToProject";
 import { download } from "@/lib/exports";
@@ -20,6 +22,7 @@ import {
   companyReportMarkdown,
   companyReportWordHtml,
   reportMoney,
+  signedPct,
 } from "@/lib/report/companyReport";
 import { safeUrl } from "@/lib/safeUrl";
 import type { PipelineRecord } from "@/lib/types";
@@ -129,7 +132,7 @@ export default function ReportPage() {
           <article className="report-doc">
             <header>
               <h1 style={{ fontSize: 34, marginBottom: 4 }}>
-                {model.name}: Company Profile
+                {model.name}: Company Deep Dive
               </h1>
               {model.factLine && (
                 <p className="count-line" style={{ fontFamily: "var(--mono)" }}>
@@ -186,45 +189,142 @@ export default function ReportPage() {
 
             {model.business && (
               <Section
-                title="What the Company Does"
+                title="Company Overview"
                 note="The company's own words, from its latest annual report."
               >
                 <p style={{ margin: 0 }}>{model.business}</p>
               </Section>
             )}
 
-            {model.financialRows.length > 0 && (
+            {model.strategic.length > 0 && (
               <Section
-                title="Financial Performance"
+                title="Strategic Direction"
+                note="Signals derived from the company's own spending, research output, and filings."
+              >
+                <div className="stack" style={{ gap: 10 }}>
+                  {model.strategic.map((signal) => (
+                    <p key={signal.heading} style={{ margin: 0 }}>
+                      <strong>{signal.heading}.</strong> {signal.text}
+                    </p>
+                  ))}
+                </div>
+              </Section>
+            )}
+
+            {(model.revenueTrajectory.length > 0 || model.financialRows.length > 0) && (
+              <Section
+                title="Business Model & Financial Performance"
                 note="Every figure from the company's XBRL filings with the SEC."
               >
-                <div className="table-wrap">
-                  <table className="data">
-                    <thead>
-                      <tr>
-                        <th>Metric</th>
-                        {model.financialYears.map((year) => (
-                          <th key={year} style={{ textAlign: "right" }}>FY{year}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {model.financialRows.map((row) => (
-                        <tr key={row.metric}>
-                          <td>{row.label}</td>
-                          {model.financialYears.map((year) => {
-                            const entry = row.values.find((v) => v.year === year);
-                            return (
-                              <td key={year} style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                                {entry ? reportMoney(entry.value) : ""}
+                {model.revenueTrajectory.length > 0 && (
+                  <>
+                    <h3 className="section-title" style={{ fontSize: 15, marginBottom: 8 }}>
+                      Revenue Trajectory
+                    </h3>
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>Fiscal Year</th>
+                            <th style={{ textAlign: "right" }}>Revenue</th>
+                            <th style={{ textAlign: "right" }}>YoY Growth</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {model.revenueTrajectory.map((row) => (
+                            <tr key={row.year}>
+                              <td>FY{row.year}</td>
+                              <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                                {reportMoney(row.revenue)}
                               </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                              <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                                {row.yoyPct == null ? "—" : signedPct(row.yoyPct)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {model.revenueTrajectory.length >= 2 && (
+                      <div style={{ marginTop: 16 }}>
+                        <p className="count-line" style={{ marginBottom: 6 }}>
+                          Revenue by fiscal year
+                        </p>
+                        <BarChart
+                          points={model.revenueTrajectory.map((row) => ({
+                            x: `FY${row.year.slice(2)}`,
+                            y: row.revenue,
+                          }))}
+                          color="var(--accent)"
+                          format={reportMoney}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {model.profitability.length > 0 && (
+                  <>
+                    <h3 className="section-title" style={{ fontSize: 15, margin: "18px 0 8px" }}>
+                      FY{model.profitabilityYear} Profitability
+                    </h3>
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>Metric</th>
+                            <th style={{ textAlign: "right" }}>Value</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {model.profitability.map((line) => (
+                            <tr key={line.label}>
+                              <td>{line.label}</td>
+                              <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                                {line.value}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+
+                {model.financialRows.length > 0 && (
+                  <>
+                    <h3 className="section-title" style={{ fontSize: 15, margin: "18px 0 8px" }}>
+                      Financial History
+                    </h3>
+                    <div className="table-wrap">
+                      <table className="data">
+                        <thead>
+                          <tr>
+                            <th>Metric</th>
+                            {model.financialYears.map((year) => (
+                              <th key={year} style={{ textAlign: "right" }}>FY{year}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {model.financialRows.map((row) => (
+                            <tr key={row.metric}>
+                              <td>{row.label}</td>
+                              {model.financialYears.map((year) => {
+                                const entry = row.values.find((v) => v.year === year);
+                                return (
+                                  <td key={year} style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                                    {entry ? reportMoney(entry.value) : ""}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
                 {financialSeries.length > 0 && (
                   <div style={{ marginTop: 16 }}>
                     <LineChart series={financialSeries} />
@@ -234,40 +334,11 @@ export default function ReportPage() {
               </Section>
             )}
 
-            {model.riskHeadlines.length > 0 && (
-              <Section
-                title="Key Risks, As the Company Names Them"
-                note="Risk categories from Item 1A of the latest 10-K."
-              >
-                <ul className="stack" style={{ gap: 4, paddingLeft: 18, margin: 0 }}>
-                  {model.riskHeadlines.map((headline) => (
-                    <li key={headline}>{headline}</li>
-                  ))}
-                </ul>
-              </Section>
-            )}
-
-            {model.filings.length > 0 && (
-              <Section title="Recent SEC Filings">
-                <ul className="stack" style={{ gap: 4, paddingLeft: 18, margin: 0 }}>
-                  {model.filings.map((filing) => (
-                    <li key={filing.url + filing.filed}>
-                      {safeUrl(filing.url) ? (
-                        <a href={safeUrl(filing.url)} target="_blank" rel="noopener noreferrer">
-                          {filing.form}
-                        </a>
-                      ) : (
-                        filing.form
-                      )}
-                      , filed {formatDate(filing.filed)}
-                    </li>
-                  ))}
-                </ul>
-              </Section>
-            )}
-
             {(model.papers.length > 0 || model.trials.length > 0 || model.grants.length > 0) && (
-              <Section title="Research and Innovation Signals">
+              <Section
+                title="Research, Partnerships & Pipeline"
+                note="Co-authored papers, registered trials, and federal awards tied to the company."
+              >
                 <div className="stack" style={{ gap: 14 }}>
                   {model.papers.length > 0 && (
                     <div>
@@ -297,12 +368,66 @@ export default function ReportPage() {
               </Section>
             )}
 
+            {model.workforce && (
+              <Section
+                title="Hiring & Workforce Signals"
+                note="From the company's own filings."
+              >
+                <p style={{ margin: 0 }}>{model.workforce}</p>
+              </Section>
+            )}
+
+            {model.competitive.length > 0 && (
+              <Section
+                title="Competitive Positioning"
+                note="In the company's own words, from its latest filings."
+              >
+                <ul className="stack" style={{ gap: 4, paddingLeft: 18, margin: 0 }}>
+                  {model.competitive.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+
+            {model.riskHeadlines.length > 0 && (
+              <Section
+                title="Key Risks, As the Company Names Them"
+                note="Risk categories from Item 1A of the latest 10-K."
+              >
+                <ul className="stack" style={{ gap: 4, paddingLeft: 18, margin: 0 }}>
+                  {model.riskHeadlines.map((headline) => (
+                    <li key={headline}>{headline}</li>
+                  ))}
+                </ul>
+              </Section>
+            )}
+
             {model.outlook && (
               <Section
                 title="Outlook"
                 note="From management's discussion in the latest annual report."
               >
                 <p style={{ margin: 0 }}>{model.outlook}</p>
+              </Section>
+            )}
+
+            {model.filings.length > 0 && (
+              <Section title="Recent SEC Filings">
+                <ul className="stack" style={{ gap: 4, paddingLeft: 18, margin: 0 }}>
+                  {model.filings.map((filing) => (
+                    <li key={filing.url + filing.filed}>
+                      {safeUrl(filing.url) ? (
+                        <a href={safeUrl(filing.url)} target="_blank" rel="noopener noreferrer">
+                          {filing.form}
+                        </a>
+                      ) : (
+                        filing.form
+                      )}
+                      , filed {formatDate(filing.filed)}
+                    </li>
+                  ))}
+                </ul>
               </Section>
             )}
 
