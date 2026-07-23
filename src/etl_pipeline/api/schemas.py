@@ -225,6 +225,23 @@ class TalkingPointModel(BaseModel):
     url: str = ""
 
 
+class DirectoryCompany(BaseModel):
+    """one listed company in the directory."""
+
+    cik: str
+    name: str
+    ticker: str
+    exchange: str = ""
+
+
+class DirectoryResponse(BaseModel):
+    """the payload returned by /directory."""
+
+    total: int
+    exchanges: list[str] = []
+    companies: list[DirectoryCompany]
+
+
 class ProjectSaveRequest(BaseModel):
     """the body of a POST /projects request."""
 

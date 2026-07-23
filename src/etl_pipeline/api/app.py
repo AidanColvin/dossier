@@ -14,6 +14,7 @@ import os
 from pathlib import Path as FilePath
 
 from etl_pipeline.api.schemas import (
+    DirectoryResponse,
     PartnershipResponse,
     ProjectEntry,
     ProjectFull,
@@ -31,7 +32,14 @@ from etl_pipeline.api.service import (
     sector_event_stream,
     to_response,
 )
-from etl_pipeline.http_client import Fetcher
+from etl_pipeline.config import load_config
+from etl_pipeline.directory.companies import (
+    directory_csv,
+    fetch_directory,
+    list_exchanges,
+    query_directory,
+)
+from etl_pipeline.http_client import Fetcher, build_fetcher
 from etl_pipeline.registry import available_sources
 from etl_pipeline.store import projects as project_store
 
@@ -102,6 +110,37 @@ def create_app() -> FastAPI:
                      fetcher: Optional[Fetcher] = Depends(get_fetcher)) -> PartnershipResponse:
         """find sourced links between a company and a research institution."""
         return run_partnership_lookup(company, institution, http=fetcher)
+
+    @app.get("/directory", response_model=DirectoryResponse)
+    def directory(search: str = Query("", max_length=80),
+                  exchange: str = Query("", max_length=40),
+                  sort: str = Query("name", max_length=20),
+                  order: str = Query("asc", pattern="^(asc|desc)$"),
+                  limit: int = Query(50, ge=1, le=200),
+                  offset: int = Query(0, ge=0),
+                  fetcher: Optional[Fetcher] = Depends(get_fetcher)) -> DirectoryResponse:
+        """search, filter, and page every sec-listed company."""
+        companies = fetch_directory(fetcher or build_fetcher(load_config()))
+        page = query_directory(companies, search=search, exchange=exchange,
+                               sort=sort, order=order, limit=limit,
+                               offset=offset)
+        return DirectoryResponse(total=page["total"],
+                                 exchanges=list_exchanges(companies),
+                                 companies=page["companies"])
+
+    @app.get("/directory.csv")
+    def directory_export(search: str = Query("", max_length=80),
+                         exchange: str = Query("", max_length=40),
+                         fetcher: Optional[Fetcher] = Depends(get_fetcher)) -> StreamingResponse:
+        """download the filtered directory as csv."""
+        companies = fetch_directory(fetcher or build_fetcher(load_config()))
+        page = query_directory(companies, search=search, exchange=exchange,
+                               limit=len(companies) or 1)
+        text = directory_csv(page["companies"])
+        return StreamingResponse(
+            iter([text]), media_type="text/csv",
+            headers={"Content-Disposition":
+                     "attachment; filename=dossier-directory.csv"})
 
     @app.post("/projects", response_model=ProjectEntry, status_code=201)
     def save_project(request: ProjectSaveRequest,
