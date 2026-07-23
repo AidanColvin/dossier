@@ -6,6 +6,9 @@ submissions api and maps each one to a filing record.
 
 docs: https://www.sec.gov/edgar/sec-api-documentation
 """
+import threading
+import time
+
 from etl_pipeline.config import Config
 from etl_pipeline.connectors.base import empty_result, failed_result, result_limit
 from etl_pipeline.http_client import Fetcher
@@ -19,6 +22,44 @@ TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
 ARCHIVE_URL = "https://www.sec.gov/Archives/edgar/data/{cik}/{accession}/{document}"
 SEC_HOME = "https://www.sec.gov"
+
+TICKERS_CACHE_TTL_SECONDS = 900.0
+
+# the tickers file is static for hours, yet entity resolution and this
+# connector both need it, so one run used to fetch it twice and a sector
+# scan many times over. the cache is keyed on the fetcher instance itself:
+# every test injects a fresh fake fetcher, so no payload ever leaks from
+# one test into another.
+_tickers_lock = threading.Lock()
+_tickers_cache: dict = {"http": None, "payload": None, "expires": 0.0}
+
+
+def fetch_tickers(http: Fetcher) -> dict:
+    """
+    given a fetcher
+    return the company_tickers payload, cached briefly per fetcher instance
+    """
+    with _tickers_lock:
+        if (_tickers_cache["http"] is http
+                and time.monotonic() < _tickers_cache["expires"]):
+            return _tickers_cache["payload"]
+    payload = http("GET", TICKERS_URL)
+    with _tickers_lock:
+        _tickers_cache["http"] = http
+        _tickers_cache["payload"] = payload
+        _tickers_cache["expires"] = time.monotonic() + TICKERS_CACHE_TTL_SECONDS
+    return payload
+
+
+def clear_tickers_cache() -> None:
+    """
+    takes nothing
+    forget any cached tickers payload, mainly for tests
+    """
+    with _tickers_lock:
+        _tickers_cache["http"] = None
+        _tickers_cache["payload"] = None
+        _tickers_cache["expires"] = 0.0
 
 
 def pad_cik(cik: object) -> str:
@@ -97,7 +138,7 @@ def resolve_cik(ticker: str, http: Fetcher, config: Config, entity: str = "") ->
     matched against the company titles, so a search for a company nobody
     remembers the ticker for still returns its filings
     """
-    tickers = http("GET", TICKERS_URL)
+    tickers = fetch_tickers(http)
     if ticker.strip():
         by_ticker = find_cik_for_ticker(tickers, ticker)
         if by_ticker:

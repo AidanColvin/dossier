@@ -1,4 +1,6 @@
 """tests for the extract stage."""
+import time
+
 from etl_pipeline.config import Config
 from etl_pipeline.core.extract import (extract_concurrent, extract_sequential,
                                        run_source)
@@ -51,3 +53,26 @@ def test_extract_isolates_one_failure(query, fake_http):
     results = extract_concurrent(connectors, query, fake_http, Config())
     assert results[0].ok is True
     assert results[1].ok is False
+
+
+class SlowConnector:
+    NAME = "slow"
+
+    @staticmethod
+    def fetch(query, http, config):
+        time.sleep(0.5)
+        return SourceResult(source="slow")
+
+
+def test_extract_concurrent_times_out_slow_source(query, fake_http):
+    connectors = [GoodConnector, SlowConnector]
+    results = extract_concurrent(connectors, query, fake_http, Config(),
+                                 timeout=0.05)
+    assert results[0].ok is True
+    assert results[1].ok is False
+    assert "deadline" in results[1].error
+
+
+def test_extract_concurrent_no_timeout_waits(query, fake_http):
+    results = extract_concurrent([SlowConnector], query, fake_http, Config())
+    assert results[0].ok is True

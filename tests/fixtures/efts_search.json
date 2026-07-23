@@ -1,0 +1,27 @@
+{
+  "hits": {
+    "total": {"value": 3},
+    "hits": [
+      {
+        "_source": {
+          "display_names": ["NVIDIA CORP  (NVDA)  (CIK 0001045810)"]
+        }
+      },
+      {
+        "_source": {
+          "display_names": ["Apple Inc.  (AAPL)  (CIK 0000320193)"]
+        }
+      },
+      {
+        "_source": {
+          "display_names": ["Quiet Private Fund LLC  (CIK 0009999999)"]
+        }
+      },
+      {
+        "_source": {
+          "display_names": ["NVIDIA CORP  (NVDA)  (CIK 0001045810)"]
+        }
+      }
+    ]
+  }
+}

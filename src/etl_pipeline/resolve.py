@@ -18,7 +18,7 @@ from typing import Optional
 
 from etl_pipeline.config import Config
 from etl_pipeline.connectors.sec_edgar import (
-    TICKERS_URL,
+    fetch_tickers,
     find_cik_for_name,
     find_cik_for_ticker,
     normalize_company,
@@ -93,7 +93,7 @@ def resolve_entity(query: Query, http: Fetcher, config: Optional[Config] = None)
         return fallback
 
     try:
-        tickers = http("GET", TICKERS_URL)
+        tickers = fetch_tickers(http)
     except Exception:  # noqa: BLE001 — resolution is best-effort, never fatal
         return fallback
 

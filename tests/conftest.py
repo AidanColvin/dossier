@@ -46,6 +46,7 @@ def fake_http():
         "openalex": load_fixture("openalex_works.json"),
         "clinicaltrials": load_fixture("clinicaltrials_studies.json"),
         "reporter.nih": load_fixture("nih_projects.json"),
+        "efts.sec.gov": load_fixture("efts_search.json"),
     }
     calls: list[dict] = []
 

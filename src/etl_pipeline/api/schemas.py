@@ -80,3 +80,77 @@ class RunResponse(BaseModel):
     profile: Optional[ProfileModel] = None
     records: list[RecordModel]
     sources: list[SourceStatus]
+
+
+class SectorRequest(BaseModel):
+    """the body of a POST /sector request."""
+
+    sector: str = Field(..., min_length=1, max_length=80,
+                        description="industry or sector to scan")
+    max_companies: int = Field(8, ge=1, le=8,
+                               description="companies to profile")
+
+
+class SectorRecordRow(BaseModel):
+    """one displayed record inside a company section."""
+
+    source: str
+    record_type: str
+    title: str
+    url: str
+    date: str
+    verified: bool
+
+
+class SectorCompanySection(BaseModel):
+    """one company's section of a sector report."""
+
+    ticker: str
+    name: str = ""
+    ok: bool = True
+    error: str = ""
+    resolved: bool = False
+    cik: str = ""
+    record_count: int = 0
+    facts: dict[str, Any] = {}
+    sources: list[SourceStatus] = []
+    top_records: list[SectorRecordRow] = []
+
+
+class SectorOverview(BaseModel):
+    """the aggregate counts a sector report opens with."""
+
+    companies_total: int
+    companies_ok: int
+    records_total: int
+    records_by_type: dict[str, int] = {}
+    records_by_source: dict[str, int] = {}
+    elapsed_seconds: float = 0.0
+
+
+class SectorVerification(BaseModel):
+    """aggregate verification stats across the scan."""
+
+    verified: int
+    total: int
+    ratio: float
+
+
+class SectorReference(BaseModel):
+    """one numbered provenance url."""
+
+    n: int
+    url: str
+
+
+class SectorResponse(BaseModel):
+    """the payload returned by /sector, and the done event of the stream."""
+
+    sector: str
+    query: str
+    # which path picked the companies: curated, discovered, or default.
+    method: str
+    overview: SectorOverview
+    companies: list[SectorCompanySection]
+    verification: SectorVerification
+    references: list[SectorReference]

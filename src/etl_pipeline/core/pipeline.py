@@ -13,25 +13,29 @@ from etl_pipeline.http_client import Fetcher, build_fetcher
 from etl_pipeline.models import Query, RunResult
 from etl_pipeline.registry import resolve_sources
 from etl_pipeline.profile import CompanyProfile, fetch_profile
-from etl_pipeline.resolve import apply_entity, resolve_entity
+from etl_pipeline.resolve import Entity, apply_entity, resolve_entity
 
 
 def collect(query: Query, sources: Optional[list[str]] = None,
             config: Optional[Config] = None, http: Optional[Fetcher] = None,
-            concurrent: bool = True) -> RunResult:
+            concurrent: bool = True,
+            entity: Optional[Entity] = None,
+            source_timeout: Optional[float] = None) -> RunResult:
     """
     given a query and options
     run extract and transform only, returning records without writing files
 
     the entity is resolved against sec edgar first, so every connector searches
     one canonical company name instead of whatever string was typed. this is
-    what stops a search for "apple" returning orchard research.
+    what stops a search for "apple" returning orchard research. a caller that
+    already resolved the entity (the sector scan resolves a whole batch up
+    front) passes it in to skip that step.
     """
     config = config or load_config()
     connectors = resolve_sources(sources)
     fetch_json = http or build_fetcher(config)
 
-    entity = resolve_entity(query, fetch_json, config)
+    entity = entity or resolve_entity(query, fetch_json, config)
     resolved_query = apply_entity(query, entity)
 
     # A resolved company gets its SEC fact banner and financial history. This
@@ -39,8 +43,11 @@ def collect(query: Query, sources: Optional[list[str]] = None,
     # entirely for anything that did not resolve.
     profile = fetch_profile(entity.cik, fetch_json, config) if entity.cik else None
 
-    extract = extract_concurrent if concurrent else extract_sequential
-    results = extract(connectors, resolved_query, fetch_json, config)
+    if concurrent:
+        results = extract_concurrent(connectors, resolved_query, fetch_json,
+                                     config, timeout=source_timeout)
+    else:
+        results = extract_sequential(connectors, resolved_query, fetch_json, config)
     records = transform(results, config)
 
     return RunResult(entity=entity.name, records=records,

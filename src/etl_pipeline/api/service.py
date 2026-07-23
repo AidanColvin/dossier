@@ -4,15 +4,22 @@ keeps request/response translation out of the route handlers so both are easy
 to test in isolation.
 """
 import json
+import queue
+import threading
 from dataclasses import asdict
 from pathlib import Path
+from typing import Iterator, Optional
 
-from etl_pipeline.api.schemas import RunRequest, RunResponse
+from etl_pipeline.api.schemas import RunRequest, RunResponse, SectorRequest
 from etl_pipeline.config import Config
 from etl_pipeline.core.pipeline import collect
 from etl_pipeline.http_client import Fetcher
 from etl_pipeline.models import Query, RunResult, SourceResult, record_from_dict
+from etl_pipeline.sector.orchestrator import run_sector
+from etl_pipeline.sector.report import build_report
 from etl_pipeline.text import slugify
+
+SSE_HEARTBEAT_SECONDS = 4.0
 
 SAMPLE_PATH = Path(__file__).parent / "sample_data.json"
 
@@ -64,6 +71,68 @@ def to_response(result: RunResult) -> RunResponse:
         sources=[{"source": s.source, "ok": s.ok, "error": s.error,
                   "count": len(s.records)} for s in result.results],
     )
+
+
+def run_sector_pipeline(request: SectorRequest,
+                        http: Fetcher | None = None) -> dict:
+    """
+    given a sector request and an optional fetcher
+    return the finished sector report dict
+    """
+    run = run_sector(request.sector, http=http, limit=request.max_companies)
+    return build_report(run)
+
+
+def sse_line(kind: str, payload: dict) -> str:
+    """
+    given an event kind and its payload
+    return the wire form of one server-sent event
+    """
+    return f"event: {kind}\ndata: {json.dumps(payload)}\n\n"
+
+
+def sector_event_stream(sector: str, http: Fetcher | None = None,
+                        max_companies: int = 8,
+                        heartbeat_seconds: float = SSE_HEARTBEAT_SECONDS) -> Iterator[str]:
+    """
+    given a sector and an optional fetcher
+    yield the scan as server-sent events, ending with done or error
+
+    the scan runs on a worker thread that pushes events into a queue; this
+    generator drains it, inserting a heartbeat whenever the scan goes quiet
+    so proxies never see a dead connection.
+    """
+    events: "queue.Queue[Optional[tuple[str, dict]]]" = queue.Queue()
+
+    def emit(kind: str, payload: dict) -> None:
+        events.put((kind, payload))
+
+    def work() -> None:
+        try:
+            run = run_sector(sector, http=http, emit=emit, limit=max_companies)
+            emit("building", {"stage": "building the report"})
+            report = build_report(run)
+            emit("verifying", {"stage": "checking sources",
+                               **report["verification"]})
+            emit("done", report)
+        except Exception as exc:  # noqa: BLE001 - the stream must end with an event, not a crash
+            emit("error", {"message": str(exc)})
+        finally:
+            events.put(None)
+
+    thread = threading.Thread(target=work, daemon=True)
+    thread.start()
+
+    while True:
+        try:
+            item = events.get(timeout=heartbeat_seconds)
+        except queue.Empty:
+            yield sse_line("heartbeat", {})
+            continue
+        if item is None:
+            return
+        kind, payload = item
+        yield sse_line(kind, payload)
 
 
 def _load_sample() -> dict:
