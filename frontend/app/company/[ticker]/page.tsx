@@ -5,12 +5,12 @@
 // company view. The ticker segment doubles as the entity query, since the
 // backend resolves either a ticker or a name to the same company.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { CompanyView } from "@/components/company/CompanyView";
 import { SaveToProject } from "@/components/shared/SaveToProject";
 import { prettyName } from "@/lib/format";
-import { recordVisit } from "@/lib/storage/recentlyViewed";
+import { readRecentlyViewed, recordVisit } from "@/lib/storage/recentlyViewed";
 import { useRun } from "@/lib/store";
 
 export default function CompanyPage() {
@@ -40,11 +40,20 @@ export default function CompanyPage() {
       run.response.ticker?.toUpperCase() === ticker.toUpperCase());
 
   // Record the visit once this company's run has landed, so the homepage can
-  // show it under "recently viewed" on the next visit.
+  // show it under "recently viewed" on the next visit. Before overwriting the
+  // stored count, compare against it: a returning reader gets told exactly
+  // how many records are new since they last looked.
+  const [newSinceLastVisit, setNewSinceLastVisit] = useState(0);
   useEffect(() => {
     if (!showingThisCompany || !run) return;
     const profile = run.response.profile;
     const displayTicker = profile?.ticker || ticker;
+    const previous = readRecentlyViewed().find(
+      (item) => item.ticker.toUpperCase() === displayTicker.toUpperCase()
+    );
+    if (previous && run.response.count > previous.lastRecordCount) {
+      setNewSinceLastVisit(run.response.count - previous.lastRecordCount);
+    }
     recordVisit(
       displayTicker,
       prettyName(profile?.name || run.response.entity),
@@ -60,6 +69,13 @@ export default function CompanyPage() {
         {loading && !showingThisCompany && (
           <p className="count-line" aria-live="polite">
             Loading records for {ticker}
+          </p>
+        )}
+
+        {showingThisCompany && newSinceLastVisit > 0 && (
+          <p className="notice notice--info" style={{ marginBottom: 8 }}>
+            {newSinceLastVisit} new record{newSinceLastVisit === 1 ? "" : "s"}{" "}
+            since your last visit.
           </p>
         )}
 

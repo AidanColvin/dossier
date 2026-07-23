@@ -5,10 +5,12 @@
 // read the finished report. the same rendering path serves both the live
 // backend and the bundled sample; only the banner differs.
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHead } from "@/components/ui";
 import { SaveToProject } from "@/components/shared/SaveToProject";
 import { SectorReportView } from "@/components/sector/SectorReportView";
+import { download } from "@/lib/exports";
+import { sectorReportMarkdown } from "@/lib/reportExport";
 import { streamSectorScan } from "@/lib/sectorStream";
 import type {
   SectorProgressEvent,
@@ -50,6 +52,10 @@ export default function SectorsPage() {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+
+    // the scan is bookmarkable: the query lands in the url, so a finished
+    // report can be shared as a link and the recipient's visit re-runs it.
+    window.history.replaceState(null, "", `/sectors?q=${encodeURIComponent(query)}`);
 
     setRunning(true);
     setError("");
@@ -99,6 +105,20 @@ export default function SectorsPage() {
       }
     }
   }, []);
+
+  // a deep-linked visit (?q=banking) runs its scan once on mount. reading
+  // window.location directly keeps this page statically prerenderable,
+  // which useSearchParams would not.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current) return;
+    autoRan.current = true;
+    const linked = new URLSearchParams(window.location.search).get("q");
+    if (linked) {
+      setSector(linked);
+      void scan(linked);
+    }
+  }, [scan]);
 
   return (
     <main className="page page--wide">
@@ -181,7 +201,18 @@ export default function SectorsPage() {
 
         {report && (
           <div style={{ marginTop: 16 }}>
-            <div className="row" style={{ justifyContent: "flex-end", marginBottom: 8 }}>
+            <div className="row" style={{ justifyContent: "flex-end", gap: 6, marginBottom: 8 }}>
+              <button
+                type="button"
+                className="chip"
+                onClick={() =>
+                  download(sectorReportMarkdown(report),
+                           `sector-${report.sector.replaceAll(" ", "-")}.md`,
+                           "text/markdown")
+                }
+              >
+                Download report
+              </button>
               <SaveToProject
                 bundle={{
                   name: `${report.sector} scan`,

@@ -5,10 +5,12 @@
 // co-authored papers, trials, funded projects, and filing mentions, plus
 // ranked talking points for outreach.
 
-import { useCallback, useState } from "react";
-import { PageHead } from "@/components/ui";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LoadingRows, PageHead } from "@/components/ui";
 import { PartnershipView } from "@/components/partnerships/PartnershipView";
 import { SaveToProject } from "@/components/shared/SaveToProject";
+import { download } from "@/lib/exports";
+import { partnershipMarkdown } from "@/lib/reportExport";
 import type { PartnershipResponse } from "@/lib/partnershipTypes";
 import type { RunMode } from "@/lib/types";
 
@@ -24,6 +26,13 @@ export default function PartnershipsPage() {
 
   const lookup = useCallback(async (companyText: string, institutionText: string) => {
     if (!companyText.trim() || !institutionText.trim()) return;
+    // the lookup is bookmarkable: both names land in the url, so a result
+    // can be shared as a link and the recipient's visit re-runs it.
+    window.history.replaceState(
+      null, "",
+      `/partnerships?company=${encodeURIComponent(companyText.trim())}` +
+        `&institution=${encodeURIComponent(institutionText.trim())}`
+    );
     setLoading(true);
     setError("");
     setData(null);
@@ -44,6 +53,23 @@ export default function PartnershipsPage() {
       setLoading(false);
     }
   }, []);
+
+  // a deep-linked visit (?company=NVDA&institution=UNC) runs its lookup
+  // once on mount, reading window.location directly so the page stays
+  // statically prerenderable.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current) return;
+    autoRan.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const linkedCompany = params.get("company");
+    const linkedInstitution = params.get("institution");
+    if (linkedCompany && linkedInstitution) {
+      setCompany(linkedCompany);
+      setInstitution(linkedInstitution);
+      void lookup(linkedCompany, linkedInstitution);
+    }
+  }, [lookup]);
 
   return (
     <main className="page page--wide">
@@ -101,9 +127,12 @@ export default function PartnershipsPage() {
         {error && <p className="notice notice--error">{error}</p>}
 
         {loading && (
-          <p className="count-line" aria-live="polite" style={{ marginTop: 16 }}>
-            Checking papers, trials, grants, and filings
-          </p>
+          <div className="stack" style={{ gap: 10, marginTop: 16 }} aria-live="polite">
+            <p className="count-line">
+              Checking papers, trials, grants, and filings
+            </p>
+            <LoadingRows rows={4} />
+          </div>
         )}
 
         {data && mode === "demo" && (
@@ -115,7 +144,18 @@ export default function PartnershipsPage() {
 
         {data && (
           <div style={{ marginTop: 16 }}>
-            <div className="row" style={{ justifyContent: "flex-end", marginBottom: 8 }}>
+            <div className="row" style={{ justifyContent: "flex-end", gap: 6, marginBottom: 8 }}>
+              <button
+                type="button"
+                className="chip"
+                onClick={() =>
+                  download(partnershipMarkdown(data),
+                           `${data.ticker || data.company}-partnerships.md`,
+                           "text/markdown")
+                }
+              >
+                Download report
+              </button>
               <SaveToProject
                 bundle={{
                   name: `${data.company} + ${data.institution}`,
