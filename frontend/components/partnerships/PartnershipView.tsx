@@ -7,6 +7,7 @@
 
 import { Empty, SourceChip, Stat } from "@/components/ui";
 import { formatDate, sourceLabel } from "@/lib/format";
+import { safeUrl } from "@/lib/safeUrl";
 import type {
   PartnershipResponse,
   TalkingPoint,
@@ -59,8 +60,8 @@ function TalkingPointsCard({ points }: { points: TalkingPoint[] }) {
               <div className="record__title">{point.headline}</div>
               {point.detail && (
                 <div className="record__meta">
-                  {point.url ? (
-                    <a href={point.url} target="_blank" rel="noopener noreferrer">
+                  {safeUrl(point.url) ? (
+                    <a href={safeUrl(point.url)} target="_blank" rel="noopener noreferrer">
                       View source
                     </a>
                   ) : (
@@ -113,12 +114,13 @@ function EvidenceRow({
   url: string;
   meta: string;
 }) {
+  const href = safeUrl(url);
   return (
     <div className="record">
       <div className="record__body">
         <div className="record__title">
-          {url ? (
-            <a href={url} target="_blank" rel="noopener noreferrer">
+          {href ? (
+            <a href={href} target="_blank" rel="noopener noreferrer">
               {title}
             </a>
           ) : (
@@ -175,8 +177,8 @@ export function PartnershipView({ data }: { data: PartnershipResponse }) {
                     </span>
                   </div>
                   <div className="record__title">
-                    {signal.url ? (
-                      <a href={signal.url} target="_blank" rel="noopener noreferrer">
+                    {safeUrl(signal.url) ? (
+                      <a href={safeUrl(signal.url)} target="_blank" rel="noopener noreferrer">
                         {signal.description}
                       </a>
                     ) : (

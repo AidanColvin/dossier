@@ -1,11 +1,14 @@
 # Future work
 
-Deferred from the trust-and-restraint pass. None of these are built yet.
+Deferred items. Several earlier deferrals shipped with the engines pass
+(saved runs became Projects, the HTTP API is now public and documented,
+the directory covers every listed company); what remains is below.
 
 ## Deferred
 
-- User accounts and auth.
-- Server-persisted watchlists (localStorage recently-viewed is enough for now).
+- User accounts and auth. An optional gate (Firebase free tier, client
+  config only) could front the workspace behind an env flag, keeping the
+  public demo gateless; it needs a Firebase project created first.
 - Annotations on records.
 - A fifth data source.
 - Advanced search (fielded query, boolean operators).
@@ -14,7 +17,12 @@ Deferred from the trust-and-restraint pass. None of these are built yet.
 - A rebuilt "this quarter" strip, showing only strict author-affiliation
   records, once the pattern is proven.
 - Company logos or hero imagery.
-- A public API.
+- Verbatim sentence extraction from 10-K filings for partnership filing
+  mentions (the mention and its archive link ship today; quoting the
+  sentence needs an HTML fetch path the JSON-only client deliberately
+  does not have).
+- A shared-store rate limiter for multi-instance deployments (the
+  in-memory one is per instance by design).
 
 ## Constraints any of these must keep
 

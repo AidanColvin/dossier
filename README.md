@@ -1,8 +1,8 @@
 # Dossier
 
-**Type a company. Get its filings, financials, research, trials, and grants - one sourced profile, in seconds.**
+**Type a company. Get its filings, financials, research, trials, and grants - one sourced profile, in seconds. Type an industry and get the same for every company in it. Name a company and a university and get their real, documented links.**
 
-Dossier compiles an intelligence profile of any public company from four **free, keyless, primary** government and research APIs. It resolves the company once, queries every source *as that company*, then normalizes, deduplicates, and provenance-checks every record - and attaches five years of the company's own SEC financials on top.
+Dossier is a full-stack intelligence workspace built on four **free, keyless, primary** government and research APIs. Its core engine resolves a company once, queries every source *as that company*, then normalizes, deduplicates, and provenance-checks every record - and attaches five years of the company's own SEC financials on top. Three more engines compose that core: a **Sector Scan** that profiles a whole industry concurrently and streams progress live, **Partnership Intelligence** that finds sourced links between any company and any research institution, and a deterministic **Talking Points** generator that turns the evidence into a ranked outreach list. A **Company Directory** covers every SEC-listed company, and **Projects** saves any finished run for instant reopening.
 
 **Live:** [groundtruth-2uhy-one.vercel.app](https://groundtruth-2uhy-one.vercel.app) · **API:** [dossier-api-kappa.vercel.app](https://dossier-api-kappa.vercel.app/health)
 
@@ -48,6 +48,16 @@ You type `Apple`. Dossier returns:
 | **Grants** | NIH RePORTER | federally funded work that names it |
 
 Every record is normalized to one shape, deduplicated across sources, and tagged with the provenance URLs that attest to it.
+
+And that single-company pipeline is only the first engine. The workspace nav exposes four more surfaces built on top of it:
+
+| Engine | Route | What it does |
+|---|---|---|
+| **Sector Scan** | `/sectors` | Type an industry. Membership resolves three ways (curated seeds → live EDGAR full-text discovery → default set, never empty), then the full pipeline runs for every company on a budgeted worker pool while progress streams to the browser as server-sent events. The report ends with aggregate verification stats and a numbered reference list. |
+| **Partnership Intelligence** | `/partnerships` | Name a company and any research institution ("NVDA" + "UNC"). Four concurrent lookups find co-authored papers (a real OpenAlex affiliation intersection, not a text search), trials naming the institution, funded projects whose text names the company, and the company's own filings mentioning the institution. Rule-based detection ranks confirmed signals over probable ones. |
+| **Talking Points** | (in the partnership view) | Deterministic template assembly over the evidence: confirmed relationships first, then funded researchers to contact, joint trials, and co-authorship openings. At most eight points, never empty, no model anywhere. |
+| **Directory** | `/directory` | Every SEC-listed company from the SEC's own exchange-annotated file: server-side search, exchange filter, sort, paging, and CSV export. Any row opens as a full dossier. |
+| **Projects** | `/projects` | Save any finished run under a name; reopening renders it from the saved payload with no re-fetch. localStorage in the browser, plus a SQLite-backed `/projects` API server-side. |
 
 ```mermaid
 flowchart LR
@@ -250,7 +260,7 @@ A Next.js App Router app built around one idea: the tool is an **answer surface*
 | `/company/[ticker]` | **The company page.** Shareable and stable. Opens with a generated lede sentence, a "what's new" strip, an interactive year timeline that filters the record list, the record list itself, and a provenance footer. Compare and Export are inline header actions. |
 | `/compare` | **Compare.** Two search fields, a generated finding, and two companies side by side by what each produces. Also available inline from any company page. |
 
-The header is a single slim strip: logo, a persistent search that stays visible on scroll, and an info icon that opens the "how it works" panel. Legacy routes (`/records`, `/analytics`, `/sources`, and the rest) redirect to their new home so existing links never 404.
+The header is a single slim strip: logo, the engine nav (Sectors, Partnerships, Directory, Projects), a persistent search that stays visible on scroll, and an info icon that opens the "how it works" panel. Legacy routes (`/records`, `/analytics`, `/sources`, and the rest) redirect to their new home so existing links never 404.
 
 **The lede is the point.** Under the header, a deterministic two to four sentence paragraph summarizes the record set. It is generated client side by `lib/summary/generateLede.ts` with no language model and no randomness, so the same records always produce the same sentence and it renders in the same paint as the header. The comparison finding works the same way (`lib/summary/generateComparison.ts`). Both are unit tested with vitest.
 
@@ -278,6 +288,12 @@ flowchart LR
 | `GET` | `/sources` | the registered connector names |
 | `POST` | `/run` | a live pipeline run for one entity |
 | `GET` | `/demo` | a pre-baked result, no network required |
+| `POST` | `/sector` | a full sector scan in one blocking response |
+| `GET` | `/sector/stream` | the same scan as server-sent events: `resolved`, `progress`, `heartbeat`, `building`, `verifying`, `done`, `error` |
+| `GET` | `/partnerships` | company + institution evidence, signals, and talking points |
+| `GET` | `/directory` | search, filter, sort, and page every SEC-listed company |
+| `GET` | `/directory.csv` | the filtered directory as a CSV download |
+| `POST` | `/projects` | save a finished run; `GET` lists, `GET /{id}` fetches, `DELETE /{id}` removes |
 
 ```bash
 curl -X POST https://dossier-api-kappa.vercel.app/run \
@@ -328,28 +344,34 @@ flowchart TB
 - **Graceful degradation** - a connector that raises is recorded as a *failed source* with its error, and the rest of the dossier is built without it. The UI shows exactly which sources responded.
 - **Source reputability** (`transform/validate.py`) - a record is marked *verified* only when it carries at least `min_sources` distinct provenance URLs from reputable hosts (matched by hostname suffix, not substring, so `evil-sec.gov.attacker.com` never passes as `sec.gov`).
 - **Honest data mode** - the `/run` proxy stamps an `x-dossier-mode` header (`live` vs `demo`); a configured-but-unreachable backend returns 502 rather than silently serving samples as a real run.
+- **Edge defenses** (`api/guard.py`) - per-client, per-route-family rate limits (the expensive sector scan gets the tightest budget: 3/min against 60/min default) answered with 429; a 16 KB request-body cap answered with 413; and strict security headers on every response (`default-src 'none'` CSP, HSTS, `nosniff`, `frame-ancestors 'none'`, `no-store`). All standard library, in-memory by design for the free single-instance deployment.
+- **Rendered-link allowlist** (`frontend/lib/safeUrl.ts`) - every URL from an API payload passes an http(s)-only check with control-character rejection before it becomes a clickable link, so a poisoned upstream response can never smuggle a `javascript:` link into the page.
+- **Bounded concurrency budgets** - the sector orchestrator caps its worker pool at 4 (each company already fans out to 4 connectors, keeping concurrent SEC requests polite), enforces one shared wall-clock budget, and records a company that outlives it as a failed section rather than stalling the scan.
 
 ---
 
 ## Testing
 
-**175 tests, passing on Python 3.10 / 3.11 / 3.12 in CI.** The pipeline is pure standard library, so the suite runs offline and deterministically - every connector is driven by an injected fetcher over recorded fixtures.
+**250 Python tests passing on 3.10 / 3.11 / 3.12 in CI, plus 32 frontend tests under vitest.** The pipeline is pure standard library, so the suite runs offline and deterministically - every connector and every engine is driven by an injected fetcher over recorded fixtures, including the SSE stream (asserted event by event) and the rate limiter.
 
 ```bash
-pytest                      # full suite
-pytest tests/test_resolve.py -v   # e.g. entity resolution
+pytest                      # full backend suite
+pytest tests/test_sector_orchestrator.py -v   # e.g. the sector fan-out
+cd frontend && npm test     # frontend unit tests
 ```
 
-Coverage spans every connector, the resolver, the profile engine (fiscal-year alignment, concept merging, restatements), dedup, validation, the HTTP client, the SSRF guard, the API, and the CLI.
+Coverage spans every connector, the resolver, the profile engine (fiscal-year alignment, concept merging, restatements), dedup, validation, the HTTP client, the SSRF guard, the sector engine (membership, orchestration, report), partnerships (evidence, signals, talking points), the directory, the project store, the API edge guard, the API itself, and the CLI.
 
 ```mermaid
 flowchart LR
-    subgraph T["tests/ · 175 tests"]
+    subgraph T["tests/ · 250 tests"]
         C["connectors × 4"]
         R["resolve"]
         P["profile"]
         D["dedup · validate · order"]
         H["http_client · net_guard"]
+        S["sector · partnerships"]
+        DIR["directory · projects · guard"]
         A["api · cli · pipeline"]
     end
 ```
@@ -372,19 +394,25 @@ src/etl_pipeline/
   core/                 extract (concurrent) · transform · load · pipeline
   transform/            dedup · validate · order
   load/                 json · csv · sqlite writers
-  api/                  app · schemas · service (FastAPI)
+  sector/               seeds · discover · membership · orchestrator · report
+  partnerships/         institutions · resolver · signals · talking_points
+  directory/            companies (fetch · query · csv export)
+  store/                projects (sqlite save / list / fetch / delete)
+  api/                  app · schemas · service · guard (FastAPI)
 
 frontend/
-  app/                  home + records · analytics · compare · exports ·
-                        sources · pipeline, plus /demo & /run route handlers
-  components/           Charts (SVG) · Profile · AppShell (nav) · ui
-  lib/                  api · store (shared run state) · resolve-aware types ·
-                        sources · analytics · exports · format
+  app/                  home · company/[ticker] · sectors · partnerships ·
+                        directory · projects · compare, plus the /demo /run
+                        /sector /partnership /companies route handlers
+  components/           Charts (SVG) · AppShell (engine nav) · ui ·
+                        sector/ · partnerships/ · company/ · shared/
+  lib/                  api · store (shared run state) · sectorStream (SSE) ·
+                        projects · safeUrl · sources · analytics · exports
 
 api/index.py            Vercel @vercel/python entry point (re-exports FastAPI)
 vercel.json             serverless function config
-tests/                  23 modules, one per source module + fixtures
-.github/workflows/      CI on Python 3.10–3.12
+tests/                  34 modules, one per source module + fixtures
+.github/workflows/      CI: pytest on Python 3.10-3.12 + vitest and next build
 ```
 
 **Tech stack:** Next.js 14 · React 18 · TypeScript 5 · FastAPI · Python 3 (stdlib pipeline) · Vercel (both runtimes).

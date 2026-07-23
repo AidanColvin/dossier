@@ -22,6 +22,16 @@ def load_fixture(name: str) -> dict:
     return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """start every test with a fresh rate-limit window, so suites that hit
+    the same route family repeatedly never trip the guard across tests."""
+    from etl_pipeline.api.app import app
+    app.state.limiter.reset()
+    yield
+    app.state.limiter.reset()
+
+
 @pytest.fixture
 def config() -> Config:
     """a default config with the verification bar at one source."""

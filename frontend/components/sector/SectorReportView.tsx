@@ -9,6 +9,7 @@ import Link from "next/link";
 import { money } from "@/components/Charts";
 import { BarChart, Empty, SourceChip, Stat } from "@/components/ui";
 import { formatDate, sourceLabel, typeLabel } from "@/lib/format";
+import { safeUrl } from "@/lib/safeUrl";
 import { sourceColor } from "@/lib/sources";
 import type {
   SectorCompanySection,
@@ -38,8 +39,8 @@ function ReportRecord({ record }: { record: SectorRecordRow }) {
       />
       <div className="record__body">
         <div className="record__title">
-          {record.url ? (
-            <a href={record.url} target="_blank" rel="noopener noreferrer">
+          {safeUrl(record.url) ? (
+            <a href={safeUrl(record.url)} target="_blank" rel="noopener noreferrer">
               {record.title}
             </a>
           ) : (
@@ -192,9 +193,13 @@ export function SectorReportView({ report }: { report: SectorReport }) {
         <ol className="stack" style={{ gap: 4 }}>
           {report.references.map((reference) => (
             <li key={reference.n} className="count-line">
-              <a href={reference.url} target="_blank" rel="noopener noreferrer">
-                {reference.url}
-              </a>
+              {safeUrl(reference.url) ? (
+                <a href={safeUrl(reference.url)} target="_blank" rel="noopener noreferrer">
+                  {reference.url}
+                </a>
+              ) : (
+                reference.url
+              )}
             </li>
           ))}
         </ol>

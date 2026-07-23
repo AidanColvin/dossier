@@ -5,9 +5,9 @@ run it with:
 """
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from etl_pipeline import __version__
 import os
@@ -31,6 +31,11 @@ from etl_pipeline.api.service import (
     run_sector_pipeline,
     sector_event_stream,
     to_response,
+)
+from etl_pipeline.api.guard import (
+    SECURITY_HEADERS,
+    RateLimiter,
+    body_too_large,
 )
 from etl_pipeline.config import load_config
 from etl_pipeline.directory.companies import (
@@ -77,6 +82,25 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    limiter = RateLimiter()
+    app.state.limiter = limiter
+
+    @app.middleware("http")
+    async def guard(request: Request, call_next):
+        """reject oversized bodies and over-budget clients, then stamp the
+        security headers on whatever the route returns."""
+        if body_too_large(request.headers.get("content-length", "")):
+            return JSONResponse({"detail": "request body too large"},
+                                status_code=413, headers=SECURITY_HEADERS)
+        client = request.client.host if request.client else "unknown"
+        if not limiter.allow(client, request.url.path):
+            return JSONResponse({"detail": "rate limit exceeded"},
+                                status_code=429, headers=SECURITY_HEADERS)
+        response = await call_next(request)
+        for name, value in SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
+        return response
 
     @app.get("/health")
     def health() -> dict:
