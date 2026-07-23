@@ -1,73 +1,95 @@
 "use client";
 
-// the home page orbit: a small network of nodes drifting through their own
-// independent, ever-changing paths, with connections that continuously
-// re-form between whichever nodes are currently nearest each other - the
-// same idea the app is built on, made visible: a shifting web of relations,
-// not a fixed diagram. no animation library, no webgl; a handful of svg
-// elements whose attributes are written directly on every frame.
+// the home page orbit: a small sphere of nodes tumbling in genuine 3d,
+// with connections that continuously re-form between whichever nodes are
+// currently nearest - and the occasional node "firing," a brief flash that
+// ripples out along its live connections. the same idea the app is built
+// on, made visible: a shifting web of relations, not a fixed diagram. no
+// three.js, no canvas; a handful of svg elements whose attributes are
+// written directly on every frame from real 3d coordinates.
 //
-// each node's path is a lissajous curve (two out-of-phase sine waves at
-// slightly different speeds), which never closes into a simple loop the
-// way a circular orbit would - the shape keeps evolving instead of
-// repeating on a short cycle. a third, independent oscillation drives
-// depth: a node's scale and opacity rise and fall as it swings "toward"
-// and "away from" the viewer, the classic parallax trick for suggesting
-// three dimensions on a flat canvas.
+// each node sits at a fixed point on a fibonacci sphere (the standard way
+// to spread points evenly over a sphere's surface, so the cluster reads as
+// a solid globe rather than a flat scatter). every frame the whole sphere
+// rotates around two axes at different speeds - a real rotation, not a
+// per-node trick - then each point is perspective-projected to the 2d
+// canvas: nodes on the near side of the sphere land larger and brighter,
+// nodes swinging to the far side shrink and fade, exactly like an object
+// actually turning in space. nearest-neighbor connections are recomputed
+// in the rotated 3d coordinates (not the flattened 2d ones), so a
+// connection is real proximity in space, and turning the sphere keeps
+// bringing new pairs close enough to link while old ones drift apart.
 
 import { useEffect, useRef } from "react";
 
-const NODE_COUNT = 14;
-const MAX_LINES = 18;
-const CONNECT_RADIUS = 70;
-const NEIGHBORS_PER_NODE = 2;
-const RECONNECT_MS = 180;
-const SIZE = 260;
+const NODE_COUNT = 30;
+const MAX_LINES = 50;
+const NEIGHBORS_PER_NODE = 3;
+const RECONNECT_MS = 150;
+const SIZE = 280;
 const CENTER = SIZE / 2;
+const SPHERE_RADIUS = 78;
+const FOCAL_LENGTH = 210;
+const ROTATE_Y_SPEED = 0.16; // radians/second, the primary tumble
+const ROTATE_X_SPEED = 0.07; // a slower cross-axis wobble, so the turn
+                              // never repeats as a flat, predictable spin
 
 interface Node {
-  // orbital parameters: independent per node, fixed for its lifetime.
-  rx: number;
-  ry: number;
-  speedX: number;
-  speedY: number;
-  speedZ: number;
-  phaseX: number;
-  phaseY: number;
-  phaseZ: number;
+  // fixed 3d position on the sphere's surface; never changes.
+  x0: number;
+  y0: number;
+  z0: number;
   baseSize: number;
-  // live position, recomputed every frame.
+  pulsePeriod: number;
+  pulsePhase: number;
+  // live, recomputed every frame: rotated 3d position and its 2d projection.
   x: number;
   y: number;
   z: number;
+  screenX: number;
+  screenY: number;
+  scale: number;
 }
 
 /**
  * given an index and the total node count
- * return one node's fixed orbital parameters, spread deterministically
- * around the center so the initial layout is stable and every node's path
- * is shaped differently from its neighbors
+ * return one node fixed at its point on a fibonacci sphere - the standard
+ * construction for spreading points evenly over a sphere's surface, which
+ * is what makes the cluster read as a solid globe instead of a flat disc
  */
 function makeNode(index: number, total: number): Node {
-  const spread = (index / total) * Math.PI * 2;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  const y0 = 1 - (index / Math.max(total - 1, 1)) * 2;
+  const ringRadius = Math.sqrt(Math.max(0, 1 - y0 * y0));
+  const theta = goldenAngle * index;
   return {
-    rx: 55 + ((index * 37) % 60),
-    ry: 45 + ((index * 53) % 55),
-    speedX: 0.18 + ((index * 0.07) % 0.14),
-    speedY: 0.14 + ((index * 0.05) % 0.12),
-    speedZ: 0.1 + ((index * 0.09) % 0.1),
-    phaseX: spread,
-    phaseY: spread * 1.7,
-    phaseZ: spread * 2.3,
-    baseSize: 3 + ((index * 7) % 4),
-    x: CENTER,
-    y: CENTER,
+    x0: Math.cos(theta) * ringRadius * SPHERE_RADIUS,
+    y0: y0 * SPHERE_RADIUS,
+    z0: Math.sin(theta) * ringRadius * SPHERE_RADIUS,
+    baseSize: 2.6 + ((index * 7) % 5) * 0.5,
+    pulsePeriod: 2.2 + (index % 5) * 0.7,
+    pulsePhase: index * 0.53,
+    x: 0,
+    y: 0,
     z: 0,
+    screenX: CENTER,
+    screenY: CENTER,
+    scale: 1,
   };
 }
 
+/**
+ * given a node's fire-pulse timing and the elapsed seconds
+ * return a value from 0 (quiet) to 1 (mid-flash), sharply peaked rather
+ * than a smooth sine, so each node reads as a brief firing event rather
+ * than a slow breathing pulse
+ */
+function pulseAt(node: Node, elapsedSeconds: number): number {
+  const phase = (elapsedSeconds / node.pulsePeriod) * Math.PI * 2 + node.pulsePhase;
+  return Math.max(0, Math.sin(phase)) ** 10;
+}
+
 export function HomeOrbit() {
-  const svgRef = useRef<SVGSVGElement>(null);
   const circleRefs = useRef<SVGCircleElement[]>([]);
   const lineRefs = useRef<SVGLineElement[]>([]);
   const nodesRef = useRef<Node[]>([]);
@@ -77,20 +99,41 @@ export function HomeOrbit() {
 
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let frame = 0;
-    let start = performance.now();
+    const start = performance.now();
     let lastConnect = 0;
     let active: Array<[number, number]> = [];
 
-    /** given elapsed seconds, advance every node along its lissajous path */
+    /** given elapsed seconds, rotate every node's fixed 3d position and project it */
     function step(elapsedSeconds: number) {
+      const angleY = elapsedSeconds * ROTATE_Y_SPEED;
+      const angleX = Math.sin(elapsedSeconds * ROTATE_X_SPEED) * 0.6;
+      const cosY = Math.cos(angleY);
+      const sinY = Math.sin(angleY);
+      const cosX = Math.cos(angleX);
+      const sinX = Math.sin(angleX);
+
       for (const node of nodesRef.current) {
-        node.x = CENTER + node.rx * Math.sin(elapsedSeconds * node.speedX + node.phaseX);
-        node.y = CENTER + node.ry * Math.sin(elapsedSeconds * node.speedY + node.phaseY);
-        node.z = Math.sin(elapsedSeconds * node.speedZ + node.phaseZ);
+        // rotate around the vertical axis first...
+        const x1 = node.x0 * cosY + node.z0 * sinY;
+        const z1 = -node.x0 * sinY + node.z0 * cosY;
+        const y1 = node.y0;
+        // ...then tip that result around the horizontal axis, so the turn
+        // is a real tumble rather than a flat carousel spin.
+        const y2 = y1 * cosX - z1 * sinX;
+        const z2 = y1 * sinX + z1 * cosX;
+
+        node.x = x1;
+        node.y = y2;
+        node.z = z2;
+
+        const scale = FOCAL_LENGTH / (FOCAL_LENGTH + z2);
+        node.scale = scale;
+        node.screenX = CENTER + x1 * scale;
+        node.screenY = CENTER + y2 * scale;
       }
     }
 
-    /** recomputes which node pairs are currently near enough to connect */
+    /** recomputes which node pairs are currently nearest in rotated 3d space */
     function reconnect() {
       const nodes = nodesRef.current;
       const pairs = new Map<string, number>();
@@ -100,13 +143,13 @@ export function HomeOrbit() {
           if (i === j) continue;
           const dx = nodes[i].x - nodes[j].x;
           const dy = nodes[i].y - nodes[j].y;
-          const d = Math.hypot(dx, dy);
-          if (d <= CONNECT_RADIUS) distances.push({ j, d });
+          const dz = nodes[i].z - nodes[j].z;
+          distances.push({ j, d: Math.hypot(dx, dy, dz) });
         }
         distances.sort((a, b) => a.d - b.d);
-        for (const { j, d } of distances.slice(0, NEIGHBORS_PER_NODE)) {
+        for (const { j } of distances.slice(0, NEIGHBORS_PER_NODE)) {
           const key = i < j ? `${i}-${j}` : `${j}-${i}`;
-          pairs.set(key, d);
+          pairs.set(key, 1);
         }
       }
       active = [...pairs.keys()].slice(0, MAX_LINES).map((key) => {
@@ -116,16 +159,19 @@ export function HomeOrbit() {
     }
 
     /** writes every node's and line's current attributes to the dom */
-    function paint() {
+    function paint(elapsedSeconds: number) {
       const nodes = nodesRef.current;
+      const pulses = nodes.map((node) => pulseAt(node, elapsedSeconds));
+
       nodes.forEach((node, i) => {
         const circle = circleRefs.current[i];
         if (!circle) return;
-        const depth = (node.z + 1) / 2; // 0 (far) .. 1 (near)
-        circle.setAttribute("cx", node.x.toFixed(1));
-        circle.setAttribute("cy", node.y.toFixed(1));
-        circle.setAttribute("r", (node.baseSize * (0.6 + depth * 0.8)).toFixed(1));
-        circle.setAttribute("opacity", (0.35 + depth * 0.65).toFixed(2));
+        const depth = Math.max(0, Math.min(1, (node.scale - 0.55) / 0.9));
+        const pulse = pulses[i];
+        circle.setAttribute("cx", node.screenX.toFixed(1));
+        circle.setAttribute("cy", node.screenY.toFixed(1));
+        circle.setAttribute("r", (node.baseSize * node.scale * (1 + pulse * 0.9)).toFixed(1));
+        circle.setAttribute("opacity", Math.min(1, 0.22 + depth * 0.62 + pulse * 0.5).toFixed(2));
       });
 
       lineRefs.current.forEach((line, i) => {
@@ -137,12 +183,14 @@ export function HomeOrbit() {
         const [a, b] = pair;
         const na = nodes[a];
         const nb = nodes[b];
-        line.setAttribute("x1", na.x.toFixed(1));
-        line.setAttribute("y1", na.y.toFixed(1));
-        line.setAttribute("x2", nb.x.toFixed(1));
-        line.setAttribute("y2", nb.y.toFixed(1));
-        const depth = ((na.z + nb.z) / 2 + 1) / 2;
-        line.setAttribute("opacity", (0.15 + depth * 0.35).toFixed(2));
+        line.setAttribute("x1", na.screenX.toFixed(1));
+        line.setAttribute("y1", na.screenY.toFixed(1));
+        line.setAttribute("x2", nb.screenX.toFixed(1));
+        line.setAttribute("y2", nb.screenY.toFixed(1));
+        const depth = Math.max(0, Math.min(1, ((na.scale + nb.scale) / 2 - 0.55) / 0.9));
+        const firing = Math.max(pulses[a], pulses[b]);
+        line.setAttribute("opacity", Math.min(0.85, 0.08 + depth * 0.3 + firing * 0.55).toFixed(2));
+        line.setAttribute("stroke-width", (0.75 + firing * 1.5).toFixed(2));
       });
     }
 
@@ -151,7 +199,7 @@ export function HomeOrbit() {
     if (reduceMotion) {
       step(2.4);
       reconnect();
-      paint();
+      paint(2.4);
       return;
     }
 
@@ -162,7 +210,7 @@ export function HomeOrbit() {
         reconnect();
         lastConnect = now;
       }
-      paint();
+      paint(elapsed);
       frame = requestAnimationFrame(tick);
     }
     frame = requestAnimationFrame(tick);
@@ -173,7 +221,6 @@ export function HomeOrbit() {
   return (
     <div className="home-orbit" aria-hidden>
       <svg
-        ref={svgRef}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         width={SIZE}
         height={SIZE}
@@ -202,7 +249,7 @@ export function HomeOrbit() {
             fill="var(--accent)"
             stroke="var(--accent)"
             strokeWidth="1"
-            fillOpacity="0.5"
+            fillOpacity="0.55"
           />
         ))}
       </svg>
