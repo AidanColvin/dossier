@@ -8,6 +8,7 @@
 import { useCallback, useState } from "react";
 import { PageHead } from "@/components/ui";
 import { PartnershipView } from "@/components/partnerships/PartnershipView";
+import { SaveToProject } from "@/components/shared/SaveToProject";
 import type { PartnershipResponse } from "@/lib/partnershipTypes";
 import type { RunMode } from "@/lib/types";
 
@@ -116,6 +117,16 @@ export default function PartnershipsPage() {
 
         {data && (
           <div style={{ marginTop: 16 }}>
+            <div className="row" style={{ justifyContent: "flex-end", marginBottom: 8 }}>
+              <SaveToProject
+                bundle={{
+                  name: `${data.company} + ${data.institution}`,
+                  mode: "partnership",
+                  subject: `${data.company} and ${data.institution}`,
+                  partnership: data,
+                }}
+              />
+            </div>
             <PartnershipView data={data} />
           </div>
         )}

@@ -225,6 +225,32 @@ class TalkingPointModel(BaseModel):
     url: str = ""
 
 
+class ProjectSaveRequest(BaseModel):
+    """the body of a POST /projects request."""
+
+    name: str = Field("", max_length=120, description="display name; the subject when blank")
+    mode: str = Field(..., pattern="^(company|sector|partnership)$")
+    subject: str = Field(..., min_length=1, max_length=120,
+                         description="the company, sector, or pair scanned")
+    payload: dict[str, Any] = Field(..., description="the finished run, verbatim")
+
+
+class ProjectEntry(BaseModel):
+    """one row of the projects listing."""
+
+    id: str
+    name: str
+    mode: str
+    subject: str
+    saved_at: str
+
+
+class ProjectFull(ProjectEntry):
+    """a project with its saved payload."""
+
+    payload: dict[str, Any]
+
+
 class PartnershipResponse(BaseModel):
     """the payload returned by /partnerships."""
 

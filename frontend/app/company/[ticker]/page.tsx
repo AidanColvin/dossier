@@ -8,6 +8,7 @@
 import { useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { CompanyView } from "@/components/company/CompanyView";
+import { SaveToProject } from "@/components/shared/SaveToProject";
 import { prettyName } from "@/lib/format";
 import { recordVisit } from "@/lib/storage/recentlyViewed";
 import { useRun } from "@/lib/store";
@@ -60,6 +61,19 @@ export default function CompanyPage() {
           <p className="count-line" aria-live="polite">
             Loading records for {ticker}
           </p>
+        )}
+
+        {showingThisCompany && run && (
+          <div className="row" style={{ justifyContent: "flex-end", marginBottom: 8 }}>
+            <SaveToProject
+              bundle={{
+                name: prettyName(run.response.profile?.name || run.response.entity),
+                mode: "company",
+                subject: run.response.ticker || run.response.entity,
+                company: run,
+              }}
+            />
+          </div>
         )}
 
         {showingThisCompany && <CompanyView run={run} />}

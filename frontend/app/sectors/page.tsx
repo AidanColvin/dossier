@@ -7,6 +7,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { PageHead } from "@/components/ui";
+import { SaveToProject } from "@/components/shared/SaveToProject";
 import { SectorReportView } from "@/components/sector/SectorReportView";
 import { streamSectorScan } from "@/lib/sectorStream";
 import type {
@@ -181,6 +182,16 @@ export default function SectorsPage() {
 
         {report && (
           <div style={{ marginTop: 16 }}>
+            <div className="row" style={{ justifyContent: "flex-end", marginBottom: 8 }}>
+              <SaveToProject
+                bundle={{
+                  name: `${report.sector} scan`,
+                  mode: "sector",
+                  subject: report.sector,
+                  sector: report,
+                }}
+              />
+            </div>
             <SectorReportView report={report} />
           </div>
         )}

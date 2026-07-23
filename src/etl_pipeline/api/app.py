@@ -5,13 +5,19 @@ run it with:
 """
 from typing import Optional
 
-from fastapi import Depends, FastAPI, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from etl_pipeline import __version__
+import os
+from pathlib import Path as FilePath
+
 from etl_pipeline.api.schemas import (
     PartnershipResponse,
+    ProjectEntry,
+    ProjectFull,
+    ProjectSaveRequest,
     RunRequest,
     RunResponse,
     SectorRequest,
@@ -27,6 +33,7 @@ from etl_pipeline.api.service import (
 )
 from etl_pipeline.http_client import Fetcher
 from etl_pipeline.registry import available_sources
+from etl_pipeline.store import projects as project_store
 
 
 def get_fetcher() -> Optional[Fetcher]:
@@ -35,6 +42,15 @@ def get_fetcher() -> Optional[Fetcher]:
     return None so the pipeline builds its real fetcher; tests override this
     """
     return None
+
+
+def get_db_path() -> FilePath:
+    """
+    takes nothing
+    return the projects database path, env-overridable; tests override this
+    """
+    return FilePath(os.environ.get("DOSSIER_DB_PATH",
+                                   str(project_store.DEFAULT_DB_PATH)))
 
 
 def create_app() -> FastAPI:
@@ -86,6 +102,36 @@ def create_app() -> FastAPI:
                      fetcher: Optional[Fetcher] = Depends(get_fetcher)) -> PartnershipResponse:
         """find sourced links between a company and a research institution."""
         return run_partnership_lookup(company, institution, http=fetcher)
+
+    @app.post("/projects", response_model=ProjectEntry, status_code=201)
+    def save_project(request: ProjectSaveRequest,
+                     db: FilePath = Depends(get_db_path)) -> ProjectEntry:
+        """save one finished run as a named project."""
+        return ProjectEntry(**project_store.save_project(
+            request.name, request.mode, request.subject, request.payload,
+            path=db))
+
+    @app.get("/projects", response_model=list[ProjectEntry])
+    def list_projects(db: FilePath = Depends(get_db_path)) -> list[ProjectEntry]:
+        """list saved projects, newest first, without payloads."""
+        return [ProjectEntry(**entry)
+                for entry in project_store.list_projects(path=db)]
+
+    @app.get("/projects/{project_id}", response_model=ProjectFull)
+    def get_project(project_id: str,
+                    db: FilePath = Depends(get_db_path)) -> ProjectFull:
+        """return one saved project with its payload."""
+        project = project_store.get_project(project_id, path=db)
+        if project is None:
+            raise HTTPException(status_code=404, detail="project not found")
+        return ProjectFull(**project)
+
+    @app.delete("/projects/{project_id}", status_code=204)
+    def delete_project(project_id: str,
+                       db: FilePath = Depends(get_db_path)) -> None:
+        """delete one saved project."""
+        if not project_store.delete_project(project_id, path=db):
+            raise HTTPException(status_code=404, detail="project not found")
 
     @app.get("/sector/stream")
     def sector_stream(sector: str = Query(..., min_length=1, max_length=80),
