@@ -95,12 +95,93 @@ export function buildContext(set: RecordSet): LedeContext {
   };
 }
 
+/** Takes a dollar amount. Returns it compact: $416.2B, $89.3M, $512,345. */
+function compactMoney(value: number): string {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  if (abs >= 1e12) return `${sign}$${(abs / 1e12).toFixed(1)}T`;
+  if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
+  if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`;
+  return `${sign}$${abs.toLocaleString()}`;
+}
+
 /**
- * Takes a record set. Returns the lede: one or two sentences naming what the
- * company is actually doing, chosen by pickHeadline. No record counts, no
- * source counts, no date span; that bookkeeping lives in the footer, where a
- * reader can find it if they want it but is never made to read it first.
+ * Takes the entity name and its profile. Returns the money sentence, or ""
+ * when the profile has no revenue to report. This is the sentence a reader
+ * actually came for: how big the company is, whether it is growing, and
+ * whether it makes money, all from its own SEC filings.
+ */
+export function financeSentence(
+  entity: string,
+  profile: RecordSet["profile"]
+): string {
+  const revenue = profile?.financials?.revenue ?? {};
+  const years = Object.keys(revenue).sort();
+  const latest = years[years.length - 1];
+  const value = revenue[latest];
+  if (!latest || !value) return "";
+
+  const parts = [`${entity} generated ${compactMoney(value)} in revenue in FY${latest}`];
+
+  const prior = revenue[years[years.length - 2]];
+  if (prior) {
+    const growth = Math.round(((value - prior) / Math.abs(prior)) * 100);
+    if (growth !== 0) {
+      parts.push(`${growth > 0 ? "up" : "down"} ${Math.abs(growth)}% year over year`);
+    }
+  }
+
+  const netIncome = profile?.financials?.net_income?.[latest];
+  if (netIncome != null) {
+    if (netIncome >= 0) {
+      const margin = Math.round((netIncome / value) * 1000) / 10;
+      parts.push(`with net income of ${compactMoney(netIncome)} at a ${margin}% net margin`);
+    } else {
+      parts.push(`with a net loss of ${compactMoney(Math.abs(netIncome))}`);
+    }
+  }
+
+  return `${parts.join(", ")}.`;
+}
+
+/**
+ * Takes the profile. Returns the identity sentence naming ticker, exchange,
+ * industry, and headquarters, or "" when none of those are known.
+ */
+export function identitySentence(profile: RecordSet["profile"]): string {
+  if (!profile) return "";
+  const bits: string[] = [];
+  if (profile.ticker && profile.exchange) {
+    bits.push(`It trades as ${profile.ticker} on ${profile.exchange}`);
+  } else if (profile.ticker) {
+    bits.push(`It trades as ${profile.ticker}`);
+  }
+  if (profile.industry) {
+    bits.push(bits.length ? `in ${profile.industry}` : `It operates in ${profile.industry}`);
+  }
+  if (profile.city && profile.state) {
+    bits.push(
+      bits.length
+        ? `from ${profile.city}, ${profile.state}`
+        : `It is headquartered in ${profile.city}, ${profile.state}`
+    );
+  }
+  return bits.length ? `${bits.join(", ")}.` : "";
+}
+
+/**
+ * Takes a record set. Returns the lede. When the company's own SEC financials
+ * are on file, the paragraph opens with them: revenue, growth, and profit are
+ * what a reader came to learn, so they come first. Identity follows, and the
+ * most recent substantive activity closes the paragraph as context. Without
+ * financials (an unresolved or private company), the activity headline is the
+ * whole lede, unchanged.
  */
 export function generateLede(set: RecordSet): string {
-  return pickHeadline({ entity: set.entity, records: set.records });
+  const finance = financeSentence(set.entity, set.profile);
+  const headline = pickHeadline({ entity: set.entity, records: set.records });
+  if (!finance) return headline;
+
+  const identity = identitySentence(set.profile);
+  return [finance, identity, headline].filter(Boolean).join(" ");
 }

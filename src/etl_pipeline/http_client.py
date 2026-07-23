@@ -122,3 +122,55 @@ def build_fetcher(config: Config, guard: bool = True) -> Fetcher:
                             headers=headers, guard=guard)
 
     return fetch_json
+
+
+# a filing document can run tens of megabytes; the narrative extractor only
+# needs the front matter and the named items, so reads are capped rather than
+# slurping whole archives into serverless memory.
+MAX_TEXT_BYTES = 15 * 1024 * 1024
+
+
+def request_text(url: str, config: Config, guard: bool = True,
+                 max_bytes: int = MAX_TEXT_BYTES) -> str:
+    """
+    given a url and a config
+    return the response body as text, capped at max_bytes, retrying
+    transient failures with backoff
+    raise HttpError once all retries are exhausted
+
+    this is the one non-json path in the client, used for filing documents
+    (10-K html, form 4 xml). the same ssrf guard and retry budget apply.
+    """
+    if guard:
+        assert_public_url(url)
+    request = build_request("GET", url, None, _default_headers(config))
+    request.add_header("Accept", "text/html, application/xml, text/plain")
+
+    last_error: Optional[Exception] = None
+    for attempt in range(1, config.http_max_retries + 1):
+        try:
+            with urlopen(request, timeout=config.http_timeout_seconds) as response:
+                raw = response.read(max_bytes)
+            return raw.decode("utf-8", errors="replace")
+        except (URLError, TimeoutError, OSError) as exc:
+            last_error = exc
+            if attempt < config.http_max_retries:
+                time.sleep(config.http_backoff_seconds * attempt)
+    raise HttpError(f"request failed after {config.http_max_retries} tries: {last_error}")
+
+
+# a text fetcher takes a url and returns the body as a string. kept separate
+# from Fetcher so the json seam every connector depends on stays exactly as
+# it is, and tests can fake either independently.
+TextFetcher = Callable[[str], str]
+
+
+def build_text_fetcher(config: Config, guard: bool = True) -> TextFetcher:
+    """
+    given a config
+    return a text fetcher callable that binds the config to request_text
+    """
+    def fetch_text(url: str) -> str:
+        return request_text(url, config, guard=guard)
+
+    return fetch_text

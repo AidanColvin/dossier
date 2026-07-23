@@ -62,6 +62,13 @@ class ProfileModel(BaseModel):
     fiscal_year_end: str = ""
     financials: dict[str, dict[str, float]] = Field(default_factory=dict)
     filings: list[FilingModel] = Field(default_factory=list)
+    # the company's own words from its latest 10-K, and its named officers
+    # from recent form 4 filings. empty on shallow runs and for companies
+    # without a readable annual report.
+    business_summary: str = ""
+    risk_headlines: list[str] = []
+    outlook: str = ""
+    leadership: list[dict[str, str]] = []
     ok: bool = False
 
 

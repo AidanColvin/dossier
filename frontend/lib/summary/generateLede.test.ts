@@ -141,4 +141,61 @@ describe("generateLede", () => {
     const s = set("Repeat Co", records);
     expect(generateLede(s)).toBe(generateLede(s));
   });
+
+  // With SEC financials on file, the lede opens with money: how big, whether
+  // growing, whether profitable. That is what a reader came for; activity
+  // trivia moves to the end of the paragraph.
+
+  const profile = {
+    name: "NVIDIA CORP", cik: "0001045810", ticker: "NVDA", exchange: "Nasdaq",
+    industry: "Semiconductors & Related Devices", city: "Santa Clara", state: "CA",
+    website: "", fiscal_year_end: "", filings: [], ok: true,
+    financials: {
+      revenue: { "2024": 60922000000, "2025": 130497000000 },
+      net_income: { "2024": 29760000000, "2025": 72880000000 },
+    },
+  };
+
+  it("opens with revenue, growth, and net margin when financials exist", () => {
+    const records = [record({ record_type: "paper", title: "Some paper", date: "2026-01-01" })];
+    const lede = generateLede({ entity: "NVIDIA", records, profile });
+    expect(lede.startsWith("NVIDIA generated $130.5B in revenue in FY2025")).toBe(true);
+    expect(lede).toContain("up 114% year over year");
+    expect(lede).toContain("net income of $72.9B");
+    expect(lede).toContain("55.8% net margin");
+    // Identity follows the money.
+    expect(lede).toContain("NVDA on Nasdaq");
+    // Activity closes the paragraph rather than leading it.
+    expect(lede.indexOf("$130.5B")).toBeLessThan(lede.indexOf("Some paper"));
+  });
+
+  it("states a net loss plainly instead of a negative margin", () => {
+    const lossProfile = {
+      ...profile,
+      financials: {
+        revenue: { "2024": 53101000000 },
+        net_income: { "2024": -18756000000 },
+      },
+    };
+    const lede = generateLede({ entity: "Intel", records: [], profile: lossProfile });
+    expect(lede).toContain("net loss of $18.8B");
+    expect(lede).not.toContain("-");
+  });
+
+  it("skips the growth clause when only one year is on file", () => {
+    const oneYear = {
+      ...profile,
+      financials: { revenue: { "2025": 1000000000 }, net_income: {} },
+    };
+    const lede = generateLede({ entity: "Solo Co", records: [], profile: oneYear });
+    expect(lede).toContain("generated $1.0B in revenue in FY2025");
+    expect(lede).not.toContain("year over year");
+  });
+
+  it("falls back to the activity headline without financials", () => {
+    const records = [record({ record_type: "paper", title: "Only paper", date: "2026-01-01" })];
+    const bare = { ...profile, financials: {} };
+    const lede = generateLede({ entity: "Private Co", records, profile: bare });
+    expect(lede.startsWith("Private Co's only public record is")).toBe(true);
+  });
 });

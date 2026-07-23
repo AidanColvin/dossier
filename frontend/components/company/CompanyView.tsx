@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from "react";
 import { CompanyFooter } from "@/components/company/CompanyFooter";
+import { CompanyNarrative } from "@/components/company/CompanyNarrative";
 import { CompanyHeader } from "@/components/company/CompanyHeader";
 import { FinancialCard } from "@/components/company/FinancialCard";
 import { LedeParagraph } from "@/components/company/LedeParagraph";
@@ -146,6 +147,8 @@ export function CompanyView({ run }: { run: RunResult }) {
           onClearYear={() => setActiveYear(null)}
         />
       </div>
+
+      <CompanyNarrative profile={run.response.profile} />
 
       <CompanyFooter run={run} onHowItWorks={() => setInfoOpen(true)} />
 

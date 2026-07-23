@@ -27,3 +27,7 @@ out/
 .idea/
 .vscode/
 .vercel
+
+# playwright
+frontend/test-results/
+frontend/playwright-report/

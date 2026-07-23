@@ -61,9 +61,9 @@ And that single-company pipeline is only the first engine. The workspace nav exp
 
 ```mermaid
 flowchart LR
-    U["👤 &quot;Apple&quot;"] --> R["Resolve<br/>→ Apple Inc. · AAPL · CIK 320193"]
-    R --> P["📊 Profile<br/>SEC financials + filings"]
-    R --> F["🔀 Fan out to 4 sources<br/>as the resolved company"]
+    U["&quot;Apple&quot;"] --> R["Resolve<br/>→ Apple Inc. · AAPL · CIK 320193"]
+    R --> P["Profile<br/>SEC financials + filings"]
+    R --> F["Fan out to 4 sources<br/>as the resolved company"]
     F --> N["Normalize · Dedup · Verify"]
     P --> OUT["One company dossier"]
     N --> OUT
@@ -92,20 +92,22 @@ Two services, both on Vercel's free tier, talking over one environment variable.
 
 ```mermaid
 flowchart TB
-    B["🌐 Browser"]
+    B["Browser"]
 
     subgraph FE["Frontend · Next.js 14 · Vercel"]
-        HOME["/ home · search + profile"]
-        REC["/records · explorer"]
-        INS["/analytics · insights"]
-        CMP["/compare · side-by-side"]
-        EXP["/exports · CSV/JSON/MD"]
-        DEMO["/demo · /run<br/>route handlers (server-side proxy)"]
+        HOME["/ home · company search"]
+        CO["/company/[ticker] · full dossier"]
+        SE["/sectors · sector scan"]
+        PA["/partnerships · institution links"]
+        DI["/directory · every listed company"]
+        PR["/projects · saved runs"]
+        PX["/run /demo /sector /partnership /companies<br/>route handlers (server-side proxy, sample fallback)"]
     end
 
-    subgraph BE["Backend · FastAPI · @vercel/python"]
-        API["/run · /demo · /sources · /health"]
-        PIPE["pipeline: resolve → extract → transform → load"]
+    subgraph BE["Backend · FastAPI · Python"]
+        API["/run · /sector · /sector/stream · /partnerships<br/>/directory · /projects · /health"]
+        PIPE["pipeline: resolve → extract → transform → verify"]
+        ORCH["sector orchestrator · partnership resolver<br/>narrative + leadership extraction"]
     end
 
     subgraph SRC["Free keyless public APIs"]
@@ -115,16 +117,42 @@ flowchart TB
         NIH["NIH RePORTER"]
     end
 
-    B --> HOME & REC & INS & CMP & EXP
-    HOME --> DEMO
-    DEMO -- "PIPELINE_API_URL" --> API
-    API --> PIPE
+    B --> HOME & CO & SE & PA & DI & PR
+    HOME & CO & SE & PA & DI --> PX
+    PX -- "PIPELINE_API_URL" --> API
+    API --> PIPE & ORCH
     PIPE --> SEC & OA & CT & NIH
+    ORCH --> SEC & OA & CT & NIH
 
     classDef fe fill:#dbeafe,stroke:#2563eb,color:#1e3a8a;
     classDef be fill:#dcfce7,stroke:#16a34a,color:#14532d;
-    class HOME,REC,INS,CMP,EXP,DEMO fe;
-    class API,PIPE be;
+    class HOME,CO,SE,PA,DI,PR,PX fe;
+    class API,PIPE,ORCH be;
+```
+
+### Pages and what each one does
+
+Every page is a working feature, not a shell. A ticker clicked in the sector
+report opens that company's dossier; a directory row does the same; a saved
+project rehydrates its engine with no re-fetch.
+
+```mermaid
+flowchart LR
+    HOME["Home<br/>search any company<br/>recently viewed · example cards"]
+    CO["Company page<br/>money-first lede · financial charts<br/>10-K business summary · leadership<br/>risk categories · record list<br/>save · export · compare"]
+    SE["Sectors<br/>live streamed scan · progress per company<br/>verification stats · references<br/>markdown download · shareable url"]
+    PA["Partnerships<br/>evidence in four tiers · ranked signals<br/>talking points with copy-all<br/>markdown download · shareable url"]
+    DI["Directory<br/>search · exchange filter · sort<br/>paging · csv export"]
+    PR["Projects<br/>save any run · reopen with no re-fetch<br/>delete · localStorage + sqlite api"]
+
+    HOME -->|"search"| CO
+    SE -->|"click a ticker"| CO
+    DI -->|"click a row"| CO
+    CO & SE & PA -->|"save"| PR
+    PR -->|"reopen"| CO & SE & PA
+
+    classDef hub fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b;
+    class CO,PR hub;
 ```
 
 - **Frontend** (`frontend/`) - Next.js App Router. The `/demo` and `/run` route handlers proxy to the backend **server-side**, so the browser never calls the API directly and no CORS setup is needed. With no backend configured, the same routes serve bundled sample data and every page says so plainly.
@@ -196,7 +224,7 @@ Records that match on normalized title and identifier are collapsed into one, an
 flowchart LR
     A["Record from OpenAlex<br/>sources: [doi, openalex]"] --> M["dedup_key match"]
     B["Same paper from PubMed<br/>sources: [pubmed]"] --> M
-    M --> C["One record<br/>sources: [doi, openalex, pubmed]<br/>✅ verified (3 ≥ min_sources)"]
+    M --> C["One record<br/>sources: [doi, openalex, pubmed]<br/>verified (3 ≥ min_sources)"]
     classDef ok fill:#dcfce7,stroke:#16a34a,color:#14532d;
     class C ok;
 ```
@@ -227,10 +255,10 @@ The result, verified live against the companies' own filings:
 
 | Company | Latest revenue | Net margin | 5-yr series |
 |---|---|---|---|
-| Apple | $416B | 27% | ✅ |
-| NVIDIA | $215.9B | 56% | ✅ |
-| Tesla | $95B | 4% | ✅ |
-| Pfizer | $63B | 12% | ✅ |
+| Apple | $416B | 27% | yes |
+| NVIDIA | $215.9B | 56% | yes |
+| Tesla | $95B | 4% | yes |
+| Pfizer | $63B | 12% | yes |
 
 ---
 
@@ -262,7 +290,9 @@ A Next.js App Router app built around one idea: the tool is an **answer surface*
 
 The header is a single slim strip: logo, the engine nav (Sectors, Partnerships, Directory, Projects), a persistent search that stays visible on scroll, and an info icon that opens the "how it works" panel. Legacy routes (`/records`, `/analytics`, `/sources`, and the rest) redirect to their new home so existing links never 404.
 
-**The lede is the point.** Under the header, a deterministic two to four sentence paragraph summarizes the record set. It is generated client side by `lib/summary/generateLede.ts` with no language model and no randomness, so the same records always produce the same sentence and it renders in the same paint as the header. The comparison finding works the same way (`lib/summary/generateComparison.ts`). Both are unit tested with vitest.
+**The lede is the point, and it leads with money.** Under the header, a deterministic paragraph opens with what a reader actually came for: "NVIDIA generated $130.5B in revenue in FY2025, up 114% year over year, with net income of $72.9B at a 55.8% net margin." Revenue, growth, and profitability come from the company's own SEC financials; identity (ticker, exchange, industry, HQ) follows; the most recent substantive activity closes the paragraph as context rather than leading it. Generated client side by `lib/summary/generateLede.ts` with no language model and no randomness, so the same data always produces the same paragraph. The comparison finding works the same way (`lib/summary/generateComparison.ts`). Both are unit tested with vitest.
+
+**The narrative is the company's own words.** On a live run the backend also reads the latest 10-K and recent Form 4 filings: the business summary is Item 1 in the company's own words, the risk list is Item 1A's named categories, management's discussion opens Item 7, and leadership is the named officers from insider filings, ranked by seniority. All extracted in Python (`narrative.py`, `leadership.py`), standard library only, no model.
 
 Charts are **hand-built, dependency-free SVG** (`components/Charts.tsx`): a multi-series line chart and a vertical bar chart, reading the same CSS variables as the rest of the app. Source identity is a neutral text label rather than a color dot; the one accent color is reserved for the verified pill. The design system is a single Apple-style token layer.
 
@@ -352,7 +382,7 @@ flowchart TB
 
 ## Testing
 
-**250 Python tests passing on 3.10 / 3.11 / 3.12 in CI, plus 32 frontend tests under vitest.** The pipeline is pure standard library, so the suite runs offline and deterministically - every connector and every engine is driven by an injected fetcher over recorded fixtures, including the SSE stream (asserted event by event) and the rate limiter.
+**262 Python tests on 3.10 / 3.11 / 3.12, 36 frontend unit tests under vitest, and 26 Playwright end-to-end tests covering every page - all in CI, all offline.** The pipeline is pure standard library, so the Python suite runs deterministically over recorded fixtures, including the SSE stream (asserted event by event), the 10-K narrative extractor, the Form 4 leadership parser, and the rate limiter. The e2e suite starts the app with no backend configured and walks every page as a user: searching a company, streaming a sector scan, running a partnership lookup, filtering and sorting the directory, and saving, reopening (asserting zero re-fetch), and deleting a project.
 
 ```bash
 pytest                      # full backend suite
@@ -364,7 +394,7 @@ Coverage spans every connector, the resolver, the profile engine (fiscal-year al
 
 ```mermaid
 flowchart LR
-    subgraph T["tests/ · 250 tests"]
+    subgraph T["tests/ · 262 backend + 62 frontend"]
         C["connectors × 4"]
         R["resolve"]
         P["profile"]

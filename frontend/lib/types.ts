@@ -57,6 +57,12 @@ export interface CompanyProfile {
   state: string;
   website: string;
   fiscal_year_end: string;
+  /** the company's own words from its latest 10-K; empty on shallow runs. */
+  business_summary?: string;
+  risk_headlines?: string[];
+  outlook?: string;
+  /** named officers from recent Form 4 filings, most senior first. */
+  leadership?: Array<{ name: string; title: string }>;
   financials: Record<string, Record<string, number>>;
   filings: Filing[];
   ok: boolean;

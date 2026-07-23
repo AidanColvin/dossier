@@ -64,6 +64,12 @@ class CompanyProfile:
     #: metric -> {fiscal year: value}, e.g. {"revenue": {"2024": 391035000000}}
     financials: dict[str, dict[str, float]] = field(default_factory=dict)
     filings: list[Filing] = field(default_factory=list)
+    #: the company's own words from its latest 10-K, empty without one.
+    business_summary: str = ""
+    risk_headlines: list[str] = field(default_factory=list)
+    outlook: str = ""
+    #: named officers from recent form 4 filings, most senior first.
+    leadership: list[dict] = field(default_factory=list)
     ok: bool = False
     error: str = ""
 
@@ -206,14 +212,53 @@ def parse_financials(facts: dict, years: int = 5) -> dict[str, dict[str, float]]
     }
 
 
-def fetch_profile(cik: str, http: Fetcher,
-                  config: Optional[Config] = None) -> CompanyProfile:
+def enrich_profile(profile: CompanyProfile, submissions: dict, cik: str,
+                   fetch_text) -> None:
     """
-    given a padded cik and a fetcher
+    given a populated profile, its submissions payload, and a text fetcher
+    fill the 10-K narrative and form 4 leadership in place
+
+    each enrichment fails independently: a company with an unreadable 10-K
+    still gets its leadership, and the reverse. the deep filing window is
+    much wider than the displayed list: a large company files dozens of
+    routine ownership forms between annual reports, so the newest 10-K can
+    sit hundreds of rows back.
+    """
+    from etl_pipeline.leadership import extract_leadership
+    from etl_pipeline.narrative import extract_narrative
+
+    deep_filings = parse_filings(submissions, cik, limit=400)
+
+    try:
+        annual = next((f for f in deep_filings
+                       if f.form in {"10-K", "20-F"} and f.url.endswith((".htm", ".html"))),
+                      None)
+        if annual is not None:
+            narrative = extract_narrative(fetch_text(annual.url))
+            profile.business_summary = narrative["business"]
+            profile.risk_headlines = narrative["risk_headlines"]
+            profile.outlook = narrative["outlook"]
+    except Exception:  # noqa: BLE001 - narrative is enrichment, never fatal
+        pass
+
+    try:
+        profile.leadership = [{"name": leader.name, "title": leader.title}
+                              for leader in extract_leadership(deep_filings, fetch_text)]
+    except Exception:  # noqa: BLE001 - leadership is enrichment, never fatal
+        pass
+
+
+def fetch_profile(cik: str, http: Fetcher,
+                  config: Optional[Config] = None,
+                  fetch_text=None) -> CompanyProfile:
+    """
+    given a padded cik and a fetcher, plus an optional text fetcher
     return the company's profile, or an unpopulated one carrying the error
 
     the financials request is allowed to fail on its own: a company with no
-    XBRL history still gets a fact banner and its filing list.
+    XBRL history still gets a fact banner and its filing list. with a text
+    fetcher the profile is enriched with the 10-K narrative and form 4
+    leadership; without one those fields stay empty and nothing is fetched.
     """
     if not cik:
         return CompanyProfile(error="no cik")
@@ -246,5 +291,8 @@ def fetch_profile(cik: str, http: Fetcher,
         profile.financials = parse_financials(facts)
     except Exception:  # noqa: BLE001 — a profile without financials is useful
         profile.financials = {}
+
+    if fetch_text is not None:
+        enrich_profile(profile, submissions, cik, fetch_text)
 
     return profile

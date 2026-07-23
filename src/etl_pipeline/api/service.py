@@ -53,11 +53,17 @@ def run_pipeline(request: RunRequest, http: Fetcher | None = None) -> RunResult:
     """
     given a run request and an optional fetcher
     return the pipeline result for it, without writing files
+
+    the single-company run is the deep one: it also reads the latest 10-K
+    and recent form 4s so the profile carries the company's own narrative
+    and its named officers. (with an injected offline fetcher, deep mode
+    stays off inside collect.)
     """
     return collect(query_from_request(request),
                    sources=request.sources,
                    config=config_from_request(request),
-                   http=http)
+                   http=http,
+                   deep_profile=True)
 
 
 def to_response(result: RunResult) -> RunResponse:

@@ -9,7 +9,12 @@ from etl_pipeline.config import Config, load_config
 from etl_pipeline.core.extract import extract_concurrent, extract_sequential
 from etl_pipeline.core.load import ALL_FORMATS, load
 from etl_pipeline.core.transform import transform
-from etl_pipeline.http_client import Fetcher, build_fetcher
+from etl_pipeline.http_client import (
+    Fetcher,
+    TextFetcher,
+    build_fetcher,
+    build_text_fetcher,
+)
 from etl_pipeline.models import Query, RunResult
 from etl_pipeline.registry import resolve_sources
 from etl_pipeline.profile import CompanyProfile, fetch_profile
@@ -20,7 +25,9 @@ def collect(query: Query, sources: Optional[list[str]] = None,
             config: Optional[Config] = None, http: Optional[Fetcher] = None,
             concurrent: bool = True,
             entity: Optional[Entity] = None,
-            source_timeout: Optional[float] = None) -> RunResult:
+            source_timeout: Optional[float] = None,
+            deep_profile: bool = False,
+            text_http: Optional[TextFetcher] = None) -> RunResult:
     """
     given a query and options
     run extract and transform only, returning records without writing files
@@ -30,10 +37,25 @@ def collect(query: Query, sources: Optional[list[str]] = None,
     what stops a search for "apple" returning orchard research. a caller that
     already resolved the entity (the sector scan resolves a whole batch up
     front) passes it in to skip that step.
+
+    deep_profile also reads the latest 10-K and recent form 4s for the
+    narrative and leadership. it is opt-in because it costs several document
+    fetches per company: right for one company page, wrong inside an
+    eight-company sector fan-out.
     """
     config = config or load_config()
     connectors = resolve_sources(sources)
     fetch_json = http or build_fetcher(config)
+
+    # with an injected json fetcher and no injected text fetcher, deep mode
+    # stays off: tests run offline, and a caller faking one seam never gets
+    # surprise live traffic through the other.
+    if text_http is not None:
+        fetch_text = text_http
+    elif deep_profile and http is None:
+        fetch_text = build_text_fetcher(config)
+    else:
+        fetch_text = None
 
     entity = entity or resolve_entity(query, fetch_json, config)
     resolved_query = apply_entity(query, entity)
@@ -41,7 +63,9 @@ def collect(query: Query, sources: Optional[list[str]] = None,
     # A resolved company gets its SEC fact banner and financial history. This
     # is what turns a list of records into a company profile, and it is skipped
     # entirely for anything that did not resolve.
-    profile = fetch_profile(entity.cik, fetch_json, config) if entity.cik else None
+    profile = (fetch_profile(entity.cik, fetch_json, config,
+                             fetch_text=fetch_text)
+               if entity.cik else None)
 
     if concurrent:
         results = extract_concurrent(connectors, resolved_query, fetch_json,
