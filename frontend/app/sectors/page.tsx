@@ -175,18 +175,27 @@ export default function SectorsPage() {
               {progress.total > 0 && ` · ${progress.done} of ${progress.total}`}
             </p>
             {progress.tickers.length > 0 && (
-              <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
-                {progress.tickers.map((ticker) => (
-                  <span
-                    key={ticker}
-                    className="badge badge--neutral"
-                    style={{
-                      opacity: progress.finished.includes(ticker) ? 1 : 0.45,
-                    }}
-                  >
-                    {ticker}
-                  </span>
-                ))}
+              <div className="grid grid--4">
+                {progress.tickers.map((ticker) => {
+                  const done = progress.finished.includes(ticker);
+                  return (
+                    <div
+                      key={ticker}
+                      className="stat"
+                      style={{
+                        opacity: done ? 1 : 0.45,
+                        transition: "opacity 0.3s var(--ease)",
+                      }}
+                    >
+                      <div className="stat__value" style={{ fontSize: 18 }}>
+                        {ticker}
+                      </div>
+                      <div className="stat__label" style={{ textTransform: "none" }}>
+                        {done ? "profiled" : "fetching"}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

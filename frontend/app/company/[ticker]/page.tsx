@@ -5,6 +5,7 @@
 // company view. The ticker segment doubles as the entity query, since the
 // backend resolves either a ticker or a name to the same company.
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { CompanyView } from "@/components/company/CompanyView";
@@ -80,7 +81,10 @@ export default function CompanyPage() {
         )}
 
         {showingThisCompany && run && (
-          <div className="row" style={{ justifyContent: "flex-end", marginBottom: 8 }}>
+          <div className="row" style={{ justifyContent: "flex-end", gap: 6, marginBottom: 8 }}>
+            <Link href={`/report/${encodeURIComponent(ticker)}`} className="chip">
+              Full report
+            </Link>
             <SaveToProject
               bundle={{
                 name: prettyName(run.response.profile?.name || run.response.entity),
